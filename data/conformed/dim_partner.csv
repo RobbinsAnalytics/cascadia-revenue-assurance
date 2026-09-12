@@ -1,0 +1,5 @@
+partner_id,partner_name,channel,designed_share_of_partner_customers
+P1,Ochre Basalt Partners,partner,0.55
+P2,Teal Gypsum Channel,partner,0.3
+P3,Umber Quartz Resale,partner,0.15
+DIRECT,Direct (no partner),direct,

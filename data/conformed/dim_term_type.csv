@@ -1,0 +1,3 @@
+term_type,months_per_term,rate_cents_per_licence_month,description
+annual,12,1000,"Twelve-month term, billed one-twelfth per calendar month in arrears"
+monthly,1,1200,"One-month term, billed per calendar month in arrears"
