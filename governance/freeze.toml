@@ -1,0 +1,33 @@
+# governance/freeze.toml -- the module-specific half of the freeze gate.
+#
+# Instantiated from cascadia-standards/templates/freeze.example.toml v1.0.0.
+# src/validate_freeze.py is copied verbatim and is never edited; everything
+# module-specific is data, here.
+
+[freeze]
+module = "cascadia-revenue-assurance"
+
+# The as-of date the synthetic generator and every published measure are
+# built against (brief D11). Disclosed on every output as a seeded, synthetic
+# snapshot -- never a claim about a real book of business. Advancing it is a
+# deliberate act, exactly as for a real freeze date.
+as_of_date = "2026-06-30"
+
+# HEAD, deliberately, and for the same reason as Fee Examiner's: this repo's
+# first commit (Part 0, bootstrap) predates the generator and both engines, so
+# "unchanged since the freeze commit" is not yet a question that can be asked.
+# Part 1's generator writes its own freeze commit (step 1.3) and this can be
+# pinned to that commit's SHA once it exists.
+baseline = "HEAD"
+
+# Part 1 has not run yet as of this commit -- nothing under data/raw/ or
+# data/conformed/ exists. These globs are staged now, from the brief's step
+# 0.3 and its D11/D12 file list, so Part 1's freeze commit lands under the
+# gate immediately rather than needing a second setup step. A pattern matching
+# nothing FAILS the gate, deliberately (validate_freeze.py) -- expected and
+# correct until Part 1 runs.
+protected_paths = [
+  "data/raw/*",
+  "data/conformed/*",
+  "governance/generator_assumptions.md",
+]
