@@ -247,16 +247,18 @@ settlement and currency are out of scope.
 
 ## 8 · Measure-specific rules
 
-**8.1 Deferral (M-05).** For every accepted `REDUCE` or `CANCEL`, the
-*scheduled landing date* is the day after the `term_end` of the term in which
-it was received (per 2.2, a boundary-day transaction is in the new term).
-`days_pending = landing_date − received_date`. `landed_by_as_of` is true iff
-the landing date is on or before the as-of date. `took_effect_as_scheduled`
-is true iff `landed_by_as_of` and, for a `REDUCE`, no later accepted `ADD`,
+**8.1 Deferral (M-05).** A *deferred order* is every accepted `CANCEL`, and
+every accepted quantity order whose effect was a pending reduction — rule
+4.2's second row, *q* < *E* — whatever its label (so G13's `ADD` to 15 is one,
+because 15 was below the effective 20). For each, the *scheduled landing
+date* is the day after the `term_end` of the term in which it was received
+(per 2.2, a boundary-day transaction is in the new term). `days_pending =
+landing_date − received_date`. `landed_by_as_of` is true iff the landing
+date is on or before the as-of date. `took_effect_as_scheduled` is true iff
+`landed_by_as_of` and, for a pending reduction, no later accepted `ADD`,
 `REDUCE` or `CANCEL` was received in the same term. The distribution is
-reported over **all** accepted `REDUCE` and `CANCEL` rows, because the wait the
-rule imposes is the exhibit; the count that later changed is reported beside
-it.
+reported over **all** deferred orders, because the wait the rule imposes is
+the exhibit; the count that later changed is reported beside it.
 
 **8.2 Percentiles.** Nearest-rank: sort ascending, take the value at
 1-based position `ceil(p × n)`. Median is *p* = 0.5.
