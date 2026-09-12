@@ -1,0 +1,4 @@
+month_key,channel,partner_id,customer_key,invoice_amount_cents,constituent_count
+2025-03,partner,P1,,166961,13
+2025-05,partner,P1,,162200,12
+2025-03,direct,DIRECT,D-G15,120000,1

@@ -1,0 +1,15 @@
+subscription_key,customer_key,partner_id,channel
+S-G01,C-G01,P1,partner
+S-G02,C-G02,P1,partner
+S-G03,C-G03,P1,partner
+S-G04,C-G04,P1,partner
+S-G05,C-G05,P1,partner
+S-G06,C-G06,P1,partner
+S-G07,C-G07,P1,partner
+S-G09,C-G09,P1,partner
+S-G10,C-G10,P1,partner
+S-G11,C-G11,P1,partner
+S-G12,C-G12,P1,partner
+S-G13,C-G13,P1,partner
+S-G14,C-G14,P1,partner
+S-G15,D-G15,DIRECT,direct
