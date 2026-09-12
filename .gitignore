@@ -1,0 +1,3 @@
+# Python bytecode. The estate global ignore covers .claude/settings.local.json only.
+__pycache__/
+*.pyc

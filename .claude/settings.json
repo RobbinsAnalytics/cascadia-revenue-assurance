@@ -14,7 +14,8 @@
       "Bash(git add*)",
       "Bash(git commit*)",
       "Bash(gh run*)",
-      "Bash(python .claude/hooks/hook_test_matrix.py)"
+      "Bash(python .claude/hooks/hook_test_matrix.py)",
+      "Bash(python src/validate*.py)"
     ],
     "ask": [
       "Bash(git push*)",
