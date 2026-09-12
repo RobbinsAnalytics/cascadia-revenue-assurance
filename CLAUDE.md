@@ -51,14 +51,23 @@ Local directory and GitHub repository are both `cascadia-revenue-assurance` —
 the one-name rule, second repository under it after `cascadia-fee-examiner`.
 No `-analytics` suffix.
 
-## The freeze (Part 1 builds it; nothing is frozen yet)
+## The freeze
 
-`governance/freeze.toml` is staged with `as_of_date = "2026-06-30"` and the
-protected-path globs Part 1's generator will populate — **no data exists yet**
-as of this commit, which is the bootstrap only (guard layer + skeleton, no
-engine, no generator). `src/validate_freeze.py` is copied verbatim from the
-estate template and is not run until Part 1's generator has written
-`data/raw/*` (build step 1.3) and committed it as its own freeze commit.
+`data/raw/*` is the frozen snapshot, written by `src/generate.py` from seed
+20260911 and committed on 2026-09-11 as its own commit. `governance/freeze.toml`
+protects `data/raw/*`, `data/conformed/*` and
+`governance/generator_assumptions.md`; `src/validate_freeze.py` is the estate
+template, verbatim, and must exit zero before anything is published.
+
+**The template gate cannot tell an untracked file from an unchanged one.** It
+compares with `git diff --quiet <baseline> -- <path>`, and an untracked path
+produces no diff, so a protected file that exists on disk but was never
+committed passes. Observed on 2026-09-11, before the freeze commit. A passing
+gate is therefore a claim about committed files only; check `git status` too.
+
+Regenerating is a deliberate act. Change `SEED` or the parameter block, rerun
+the generator, and re-freeze with a commit that says so — never edit a file
+under `data/` by hand.
 
 ## Committing
 
@@ -89,10 +98,25 @@ directory, so that session was never governed by the hooks it was installing.
 Part 1 (the engine, the generator, the golden fixture) runs in a fresh session
 rooted **here**, where the guard is live rather than merely present.
 
-## Generated, not authored (once Part 1 runs — nothing exists yet)
+## Generated, not authored
 
-`data/raw/*`, `data/conformed/*`, `governance/generator_assumptions.md`,
-`governance/reconciliation.md` and `measures_manifest.json` will all be build
-outputs once the generator and both engines exist. **None of them exist as of
-this commit.** Once they do, hand-editing any of them is a recurring failure
-mode elsewhere in this estate — regenerate instead.
+`data/raw/*`, `data/conformed/*` (every `dim_*`, every `fact_*`,
+`measures_manifest.json`, `manifest.json`), `governance/generator_assumptions.md`
+and `governance/reconciliation.md` are build outputs. Hand-editing any of them
+is a recurring failure mode elsewhere in this estate — regenerate instead. The
+build order is `generate.py` → `build_dimensions.py` → `build_entitlement.py`,
+then the four gates: `validate.py`, `validate_measures.py`, `validate_freeze.py`,
+`test_golden.py`. All four must exit zero before anything under
+`data/conformed/` is committed.
+
+## Three facts that are not in the code and have already mattered
+
+- **Path 2 reads `data/raw/order_events.csv`, not `fact_order_event.csv`.**
+  The conformed table carries Path 1's `accepted` and `rejection_reason`
+  columns; a Path 2 that read them would be validating Path 1 against itself.
+- **The rejection vocabulary has seven reasons, not the brief's six.**
+  `DUPLICATE_CANCEL` was added because a second `CANCEL` had no class. The
+  list, with precedence, is `governance/entitlement-rules.md` §1.2.
+- **`governance/entitlement-rules.md` is normative and both paths are written
+  from it.** If the paths disagree, fix the document first (D12), then both
+  paths; do not patch one path to match the other.
