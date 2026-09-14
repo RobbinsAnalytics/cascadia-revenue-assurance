@@ -109,6 +109,37 @@ then the four gates: `validate.py`, `validate_measures.py`, `validate_freeze.py`
 `test_golden.py`. All four must exit zero before anything under
 `data/conformed/` is committed.
 
+## Stage 2 — the page (2026-09-14)
+
+`docs/index.html` is built by `src/build_page.py` from
+`data/conformed/measures_manifest.json` and `measures_stage2.json` only; every
+figure and every sentence a chart shows is composed there and passed to
+`docs/assets/page.js`, which decides geometry. `src/render_charts.py` derives
+the K6 ladder from `window.CASCADIA_BREAKPOINTS` and opens the page as a
+`file://` URL — no server, no network. Rebuild order after any change:
+`build_page.py`, then `render_charts.py`; the renders under `docs/renders/`
+are committed and `chart-review.md` cites them.
+
+Five facts from that build that are not inferable from the code:
+
+- **ECharts' `overflow: 'break'` breaks after any ASCII punctuation and any
+  non-ASCII character**, so it split a title inside "$35,560" at the comma.
+  Every canvas sentence is pre-wrapped at spaces in `page.js` (`prewrap`)
+  before ECharts sees it. Do not pass a raw sentence to `cascadiaTitle` or
+  `cascadiaAnnotation`.
+- **A markPoint label with `align: 'right'` right-aligns to the anchor on its
+  own.** Adding an `offset` to "help" pushed two annotations off the canvas.
+- **The design system ships no stylesheet.** `docs/assets/cascadia.css` is the
+  Fee Examiner copy with its `@font-face` `url()` sources removed, because the
+  woff2 files they name exist in neither repository and every load 404'd.
+- **The second breakpoint (900) is measured, not chosen.** Chart 2's in-plot
+  annotation needs bar + value label + 200 px of prose on one row; at 760 it
+  clipped. Below 900 the sentence is the note under the chart.
+- **A new file under `data/conformed/` fails the pinned freeze gate** even
+  when it is derived from frozen inputs, because it did not exist at the
+  baseline. `measures_stage2.json` is a declared `[[permitted_edit]]` in
+  `governance/freeze.toml`; the reason prints on every run.
+
 ## Three facts that are not in the code and have already mattered
 
 - **Path 2 reads `data/raw/order_events.csv`, not `fact_order_event.csv`.**
