@@ -1,0 +1,57 @@
+{
+  "module": "cascadia-revenue-assurance",
+  "as_of_date": "2026-06-30",
+  "disclosure": "Synthetic data from a seeded generator (seed 20260911). Simulated: not a real company, customer, partner, product or book of business.",
+  "seed": 20260911,
+  "tables": {
+    "dim_date.csv": {
+      "status": "derived",
+      "grain": "one row per day in the window"
+    },
+    "dim_term_type.csv": {
+      "status": "observed",
+      "grain": "one row per term type"
+    },
+    "dim_partner.csv": {
+      "status": "observed",
+      "grain": "one row per partner, plus DIRECT"
+    },
+    "dim_customer.csv": {
+      "status": "observed",
+      "grain": "one row per customer"
+    },
+    "dim_subscription.csv": {
+      "status": "observed",
+      "grain": "one row per subscription; register attributes as of the as-of date"
+    },
+    "fact_order_event.csv": {
+      "status": "observed",
+      "grain": "one row per transaction received",
+      "rows": 7493
+    },
+    "fact_entitlement_term.csv": {
+      "status": "observed and derived, flagged per row",
+      "grain": "one row per subscription x term instance",
+      "rows": 23508
+    },
+    "fact_billable_month.csv": {
+      "status": "derived",
+      "grain": "one row per subscription x calendar month with >= 1 effective day",
+      "rows": 50110
+    },
+    "fact_deferral.csv": {
+      "status": "derived",
+      "grain": "one row per accepted REDUCE or CANCEL",
+      "rows": 1460
+    },
+    "fact_invoice_line.csv": {
+      "status": "derived roll-up",
+      "grain": "partner x month (Partner) or customer x month (Direct)",
+      "rows": 2398
+    },
+    "measures_manifest.json": {
+      "status": "derived",
+      "grain": "every M- value at as-of"
+    }
+  }
+}

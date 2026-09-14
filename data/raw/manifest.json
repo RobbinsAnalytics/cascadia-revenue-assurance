@@ -1,0 +1,137 @@
+{
+  "module": "cascadia-revenue-assurance",
+  "generator": "src/generate.py",
+  "generator_version": "1.0.0",
+  "disclosure": "Synthetic data from a seeded generator (seed 20260911). Simulated: not a real company, customer, partner, product or book of business.",
+  "seed": 20260911,
+  "as_of_date": "2026-06-30",
+  "window": {
+    "start": "2024-07-01",
+    "end": "2026-06-30"
+  },
+  "parameters": {
+    "SEED": 20260911,
+    "AS_OF": "2026-06-30",
+    "WINDOW_START": "2024-07-01",
+    "WINDOW_END": "2026-06-30",
+    "N_CUSTOMERS": 4000,
+    "N_DIRECT": 200,
+    "PARTNERS": [
+      {
+        "partner_id": "P1",
+        "partner_name": "Ochre Basalt Partners",
+        "share": 0.55
+      },
+      {
+        "partner_id": "P2",
+        "partner_name": "Teal Gypsum Channel",
+        "share": 0.3
+      },
+      {
+        "partner_id": "P3",
+        "partner_name": "Umber Quartz Resale",
+        "share": 0.15
+      }
+    ],
+    "P_ANNUAL": 0.6,
+    "P_SECOND_SUBSCRIPTION": 0.1,
+    "PARTNER_QTY": {
+      "median": 8,
+      "sigma": 0.9,
+      "range": [
+        1,
+        80
+      ]
+    },
+    "DIRECT_QTY": {
+      "median": 200,
+      "sigma": 0.7,
+      "range": [
+        25,
+        2000
+      ]
+    },
+    "P_ADD": 0.03,
+    "P_REDUCE": 0.02,
+    "P_CANCEL": 0.01,
+    "P_REJECT": 0.005,
+    "ADD_UPLIFT": [
+      1.1,
+      1.6
+    ],
+    "REDUCE_FACTOR": [
+      0.4,
+      0.9
+    ],
+    "REJECT_MIX_ACTIVE": {
+      "NOOP_QUANTITY": 0.45,
+      "REDUCE_TO_ZERO": 0.25,
+      "DUPLICATE_NEW": 0.15,
+      "UNKNOWN_SUBSCRIPTION": 0.15
+    },
+    "REJECT_MIX_CANCELLED": {
+      "ADD_AFTER_CANCEL": 0.4,
+      "REDUCE_AFTER_CANCEL": 0.4,
+      "DUPLICATE_CANCEL": 0.2
+    },
+    "AFTER_CANCEL_MONTHS": 3,
+    "UNKNOWN_KEY_BASE": 90000
+  },
+  "counts": {
+    "customers": 4000,
+    "customers_by_partner": {
+      "P1": 2090,
+      "P2": 1140,
+      "P3": 570,
+      "DIRECT": 200
+    },
+    "customer_refs_shared_across_partners": 1140,
+    "subscriptions": 4397,
+    "subscriptions_annual": 2630,
+    "subscriptions_monthly": 1767,
+    "subscriptions_cancelled_by_as_of": 491,
+    "transactions": 7493,
+    "transactions_by_type": {
+      "ADD": 1557,
+      "CANCEL": 492,
+      "NEW": 4436,
+      "REDUCE": 1008
+    },
+    "transactions_intended_to_be_refused_by_reason": {
+      "ADD_AFTER_CANCEL": 5,
+      "DUPLICATE_CANCEL": 1,
+      "DUPLICATE_NEW": 39,
+      "NOOP_QUANTITY": 116,
+      "REDUCE_AFTER_CANCEL": 2,
+      "REDUCE_TO_ZERO": 54,
+      "UNKNOWN_SUBSCRIPTION": 42
+    }
+  },
+  "realised_movement": {
+    "active_subscription_months": 48429,
+    "rate_per_active_subscription_month": {
+      "ADD": {
+        "count": 1417,
+        "rate": 0.02926
+      },
+      "REDUCE": {
+        "count": 929,
+        "rate": 0.01918
+      },
+      "CANCEL": {
+        "count": 491,
+        "rate": 0.01014
+      },
+      "REJECT": {
+        "count": 259,
+        "rate": 0.00535
+      }
+    }
+  },
+  "files": [
+    "customers.csv",
+    "subscriptions_register.csv",
+    "order_events.csv",
+    "manifest.json"
+  ]
+}

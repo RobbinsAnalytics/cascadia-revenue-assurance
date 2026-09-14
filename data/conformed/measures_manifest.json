@@ -1,0 +1,89 @@
+{
+  "module": "cascadia-revenue-assurance",
+  "disclosure": "Synthetic data from a seeded generator (seed 20260911). Simulated: not a real company, customer, partner, product or book of business.",
+  "built_by": "src/build_entitlement.py (Path 1)",
+  "seed": 20260911,
+  "measures": {
+    "as_of_date": "2026-06-30",
+    "M-01_effective_licences_at_as_of": 102554,
+    "M-02_register_licences_at_as_of": 96679,
+    "M-03_entitlement_gap": {
+      "licences_at_as_of": 5875,
+      "cents_at_as_of": 5926400,
+      "backlog_share_of_as_of_month_billable": 0.05530462002891939,
+      "subscription_months_total": 50110,
+      "subscription_months_with_gap": 4467,
+      "subscription_months_with_gap_share": 0.08914388345639593,
+      "cents_at_as_of_by_term_type": {
+        "annual": 5618000,
+        "monthly": 308400
+      },
+      "annual_share_of_backlog_cents": 0.9479616630669546,
+      "gap_cents_all_months": 77116600
+    },
+    "M-04_prorated_revenue": {
+      "billable_cents_all_months": 1262167944,
+      "billable_cents_at_as_of_month": 107159221,
+      "partial_month_cents": 112588944,
+      "partial_month_share": 0.08920282323379938,
+      "by_term_type_cents": {
+        "annual": 737125648,
+        "monthly": 525042296
+      },
+      "by_channel_cents": {
+        "partner": 602160779,
+        "direct": 660007165
+      }
+    },
+    "M-05_deferral_exposure": {
+      "annual": {
+        "n": 845,
+        "median_days": 229,
+        "p90_days": 353,
+        "max_days": 365,
+        "landed_by_as_of": 452,
+        "took_effect_as_scheduled": 376,
+        "backlog_cents_at_as_of": 5618000
+      },
+      "monthly": {
+        "n": 615,
+        "median_days": 16,
+        "p90_days": 28,
+        "max_days": 31,
+        "landed_by_as_of": 588,
+        "took_effect_as_scheduled": 587,
+        "backlog_cents_at_as_of": 308400
+      }
+    },
+    "M-06_derived_share": {
+      "rows_total": 50110,
+      "rows_derived": 22248,
+      "rows_derived_share": 0.4439832368788665,
+      "cents_derived": 607879251,
+      "cents_derived_share": 0.48161518749520704,
+      "terms_total": 23508,
+      "terms_derived": 19111
+    },
+    "M-07_rejected_transaction_rate": {
+      "received": 7493,
+      "rejected": 259,
+      "rate": 0.03456559455491792,
+      "by_reason": {
+        "ADD_AFTER_CANCEL": 5,
+        "DUPLICATE_CANCEL": 1,
+        "DUPLICATE_NEW": 39,
+        "NOOP_QUANTITY": 116,
+        "REDUCE_AFTER_CANCEL": 2,
+        "REDUCE_TO_ZERO": 54,
+        "UNKNOWN_SUBSCRIPTION": 42
+      }
+    },
+    "M-08_invoice_tie_out": {
+      "invoice_lines": 2398,
+      "lines_with_nonzero_tie_out": 0,
+      "partner_lines": 72,
+      "direct_lines": 2326,
+      "invoice_cents_total": 1262167944
+    }
+  }
+}

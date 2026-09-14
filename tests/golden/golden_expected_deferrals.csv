@@ -1,0 +1,12 @@
+transaction_id,days_pending,landed_by_as_of,took_effect_as_scheduled
+14,334,true,false
+15,334,true,false
+16,334,true,false
+20,325,true,true
+21,19,true,true
+22,18,true,true
+28,275,true,true
+30,11,true,true
+31,315,true,true
+34,245,true,true
+36,229,true,true
