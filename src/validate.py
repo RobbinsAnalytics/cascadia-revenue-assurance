@@ -152,7 +152,8 @@ def main() -> int:
     # 9 -----------------------------------------------------------------------------
     disclosure = raw_manifest["disclosure"]
     docs = [GOV / "generator_assumptions.md", GOV / "reconciliation.md",
-            CONF / "measures_manifest.json", CONF / "manifest.json"]
+            CONF / "measures_manifest.json", CONF / "manifest.json",
+            CONF / "measures_stage2.json"]
     missing = [d.name for d in docs if disclosure not in d.read_text(encoding="utf-8")]
     record("every output document carries the synthetic disclosure", not missing,
            f"{len(docs)} documents checked; missing from {missing or 'none'}")

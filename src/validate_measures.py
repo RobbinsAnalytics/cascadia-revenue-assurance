@@ -464,6 +464,81 @@ def _i(v):
     return int(v)
 
 
+def stage2_sql(con: duckdb.DuckDBPyConnection, as_of: date) -> dict:
+    """Stage 2 cuts, re-derived as SQL aggregates from this path's own tables.
+
+    Definitions from governance/metric_register.md M-03a, M-05a, M-06a and the
+    Stage 2 lineage notes under M-01 and M-02. Same shape as Path 1 publishes.
+    """
+    mk = f"{as_of.year:04d}-{as_of.month:02d}"
+    tts, causes = ("annual", "monthly"), ("cancel_riding_out", "deferred_reduction")
+
+    # M-03a: cause = cancel_pending on the term instance containing the as-of date
+    rows = con.execute(f"""
+        WITH cur AS (
+          SELECT subscription_key, cancel_pending FROM term_out
+          WHERE DATE '{as_of.isoformat()}' BETWEEN term_start AND term_end
+        )
+        SELECT b.term_type,
+               CASE WHEN coalesce(c.cancel_pending, FALSE) THEN 'cancel_riding_out'
+                    ELSE 'deferred_reduction' END AS cause,
+               sum(b.gap_amount_cents), count(*), sum(b.gap_quantity)
+        FROM bm b LEFT JOIN cur c USING (subscription_key)
+        WHERE b.month_key = ? AND b.gap_amount_cents > 0
+        GROUP BY 1, 2
+    """, [mk]).fetchall()
+    cells = {tt: {c: {"cents": 0, "subscription_months": 0, "licences": 0} for c in causes} for tt in tts}
+    for tt, cause, cents, n, lic in rows:
+        cells[tt][cause] = {"cents": int(cents), "subscription_months": int(n), "licences": int(lic)}
+    total = sum(cells[tt][c]["cents"] for tt in tts for c in causes)
+
+    # M-05a: by term type x transaction type; nearest-rank percentiles (rule 8.2)
+    m05a = {tt: {} for tt in tts}
+    for tt in tts:
+        for ttype in ("ADD", "CANCEL", "REDUCE"):
+            n, mn, mx = con.execute(
+                "SELECT count(*), min(days_pending), max(days_pending) FROM dfr "
+                "WHERE term_type = ? AND transaction_type = ?", [tt, ttype]).fetchone()
+            med, p90 = con.execute("""
+                WITH s AS (SELECT days_pending, row_number() OVER (ORDER BY days_pending) AS rn,
+                                  count(*) OVER () AS n FROM dfr
+                           WHERE term_type = ? AND transaction_type = ?)
+                SELECT max(CASE WHEN rn = greatest(1, ceil(0.5 * n)) THEN days_pending END),
+                       max(CASE WHEN rn = greatest(1, ceil(0.9 * n)) THEN days_pending END) FROM s""",
+                [tt, ttype]).fetchone()
+            m05a[tt][ttype] = {"n": int(n), "median_days": _i(med), "p90_days": _i(p90),
+                               "min_days": _i(mn), "max_days": _i(mx)}
+    hist = {tt: {str(b): 0 for b in range(0, 361, 30)} for tt in tts}
+    for tt, b, n in con.execute(
+            "SELECT term_type, least(360, (days_pending // 30) * 30), count(*) FROM dfr GROUP BY 1, 2").fetchall():
+        hist[tt][str(int(b))] = int(n)
+
+    # M-06a
+    m06a = {}
+    for tt, n, nd in con.execute(
+            "SELECT term_type, count(*), count(*) FILTER (WHERE derived) FROM bm GROUP BY 1").fetchall():
+        m06a[tt] = {"rows": int(n), "rows_derived": int(nd), "share": (nd / n) if n else None}
+
+    # M-01 / M-02 at each month end
+    series = [
+        {"month_key": k, "effective_licences": int(e), "register_licences": int(r),
+         "gap_licences": int(g), "gap_cents": int(gc), "billable_cents": int(bc), "rows": int(n)}
+        for k, e, r, g, gc, bc, n in con.execute("""
+            SELECT month_key, sum(effective_quantity_at_month_end), sum(register_quantity_at_month_end),
+                   sum(gap_quantity), sum(gap_amount_cents), sum(billable_amount_cents), count(*)
+            FROM bm GROUP BY 1 ORDER BY 1""").fetchall()
+    ]
+    return {
+        "as_of_date": as_of.isoformat(),
+        "M-03a_gap_at_as_of_by_term_type_and_cause": {"as_of_month": mk, "by_term_type": cells,
+                                                      "total_cents": total},
+        "M-05a_deferral_by_term_type_and_transaction_type": m05a,
+        "M-05a_histogram_30_day_bins": hist,
+        "M-06a_derived_share_by_term_type": m06a,
+        "M-01_M-02_monthly_series": series,
+    }
+
+
 # ---------------------------------------------------------------------------
 # entry points
 # ---------------------------------------------------------------------------
@@ -506,6 +581,7 @@ def derive_from_files(events_csv: Path, subscriptions_csv: Path, as_of: date,
     derive_sql(con, as_of)
     out = {name: _records(con.execute(sql).df()) for name, sql in OUT_QUERIES.items()}
     out["measures"] = measures_sql(con, as_of)
+    out["stage2"] = stage2_sql(con, as_of)
     con.close()
     return out
 
@@ -556,11 +632,12 @@ def compare(name: str, published: pd.DataFrame, rederived: list[dict], keys: lis
     return cells
 
 
-def flatten(d: dict, prefix: str = "") -> dict:
+def flatten(d, prefix: str = "") -> dict:
     out = {}
-    for k, v in d.items():
-        p = f"{prefix}.{k}" if prefix else k
-        if isinstance(v, dict):
+    items = d.items() if isinstance(d, dict) else enumerate(d)
+    for k, v in items:
+        p = f"{prefix}.{k}" if prefix else str(k)
+        if isinstance(v, (dict, list)):
             out.update(flatten(v, p))
         else:
             out[p] = v
@@ -601,19 +678,36 @@ def main() -> int:
                      ["invoice_amount_cents", "constituent_count", "constituent_sum_cents",
                       "tie_out_difference_cents"], mismatches)
 
-    published = json.loads((CONF / "measures_manifest.json").read_text(encoding="utf-8"))["measures"]
-    p1, p2 = flatten(published), flatten(out["measures"])
-    for k in sorted(set(p1) | set(p2)):
-        cells += 1
-        a, b = p1.get(k), p2.get(k)
-        if isinstance(a, float) or isinstance(b, float):
-            same = (a is not None and b is not None and abs(float(a) - float(b)) <= 1e-9)
-        else:
-            same = _norm(a) == _norm(b)
-        if not same:
-            mismatches.append(f"measures {k}: Path 1 {a!r} vs Path 2 {b!r}")
+    def compare_measures(label: str, published: dict, rederived: dict) -> int:
+        n = 0
+        p1, p2 = flatten(published), flatten(rederived)
+        for k in sorted(set(p1) | set(p2)):
+            n += 1
+            a, b = p1.get(k), p2.get(k)
+            if isinstance(a, float) or isinstance(b, float):
+                same = (a is not None and b is not None and abs(float(a) - float(b)) <= 1e-9)
+            else:
+                same = _norm(a) == _norm(b)
+            if not same:
+                mismatches.append(f"{label} {k}: Path 1 {a!r} vs Path 2 {b!r}")
+        return n
 
-    print(f"  cells compared: {cells:,}  (events, terms, subscription-months, deferrals, invoice lines, M- values)")
+    published = json.loads((CONF / "measures_manifest.json").read_text(encoding="utf-8"))["measures"]
+    cells += compare_measures("measures", published, out["measures"])
+
+    # Stage 2 (2026-09-14): the page's cuts, published by Path 1 in a separate file.
+    # The monthly series is a list; flatten() keys it by index, which is what we want.
+    stage2_path = CONF / "measures_stage2.json"
+    stage2_cells = 0
+    if stage2_path.exists():
+        published2 = json.loads(stage2_path.read_text(encoding="utf-8"))["measures"]
+        stage2_cells = compare_measures("stage2", published2, out["stage2"])
+        cells += stage2_cells
+    else:
+        mismatches.append("stage2: data/conformed/measures_stage2.json is not published")
+
+    print(f"  cells compared: {cells:,}  (events, terms, subscription-months, deferrals, invoice lines, "
+          f"M- values; of which {stage2_cells:,} in measures_stage2.json)")
     if mismatches:
         summary: dict[str, int] = {}
         for m in mismatches:

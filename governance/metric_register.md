@@ -67,6 +67,12 @@ Effective quantity is derived from the event stream under stated rules; the
   then `transaction_id`), and nothing finer exists.
 - At a month end, a subscription that ended earlier in the month contributes 0
   here and still has a row (its licence-days are in M-04).
+- **Stage 2 lineage.** The page's Exhibit 3 plots this measure at each of the
+  24 month ends in the window: the sum of `effective_quantity_at_month_end`
+  over `fact_billable_month` per `month_key`. Those 24 values are written by
+  the build to `data/conformed/measures_stage2.json` under
+  `M-01_M-02_monthly_series`, and re-derived by Path 2. They are M-01 at 24
+  dates, not a new measure.
 
 ## M-02 · Register (contracted) quantity at a date
 
@@ -86,6 +92,10 @@ Effective quantity is derived from the event stream under stated rules; the
   wrong about the invoice every month a deferral is outstanding.** That is the
   module's subject, not a defect in the measure.
 - Rejected transactions never move it (rule 1.2).
+- **Stage 2 lineage.** Exhibit 3 plots this measure beside M-01 at the same
+  24 month ends: the sum of `register_quantity_at_month_end` per `month_key`,
+  in the same `M-01_M-02_monthly_series` block. M-02 at 24 dates, not a new
+  measure.
 
 ## M-03 · Entitlement gap
 
@@ -113,6 +123,34 @@ Effective quantity is derived from the event stream under stated rules; the
   dollars by that month's `billable_amount_cents`. A subscription that opened
   late in the month contributes a prorated denominator and a full-quantity
   numerator; the ratio is a snapshot, not a rate of revenue at risk.
+
+### M-03a · Entitlement gap at as-of, by term type and cause
+
+> **Definition.** M-03's dollars and licences at the as-of month end, split by
+> term type and by **cause**: a subscription-month is `cancel_riding_out` when
+> the subscription's term instance containing the as-of date carries
+> `cancel_pending = true`, and `deferred_reduction` otherwise. Four cells,
+> each with cents, subscription-months and licences. The four cents values
+> sum to M-03 `cents_at_as_of` exactly, and the build asserts it.
+
+| | |
+|---|---|
+| **Owner** | Aaron Robbins |
+| **Output** | `data/conformed/measures_stage2.json` → `M-03a_gap_at_as_of_by_term_type_and_cause` |
+| **Lineage** | `fact_billable_month` (as-of month, `gap_amount_cents > 0`) joined to `fact_entitlement_term` on the term whose `term_start ≤ as-of ≤ term_end` |
+| **Population** | Every subscription-month in the as-of month with a positive gap |
+
+**Limits.**
+- **Cause is a property of the subscription's current term, not of each
+  licence in the gap.** A subscription with a pending reduction *and* a
+  pending cancellation counts wholly as `cancel_riding_out`, because the
+  cancellation is what decides that no next term opens (rule 4.3). The
+  reduction target on such a term is recorded and never lands.
+- A month-end snapshot of one month. It says where the June 2026 backlog
+  sits; it is not a rate over the window.
+- **Read the counts beside the dollars.** In this snapshot cancellations are
+  the larger dollars and deferred reductions the larger count; a chart that
+  shows only one of the two invites the wrong sentence.
 
 ## M-04 · Prorated period revenue
 
@@ -169,6 +207,32 @@ Effective quantity is derived from the event stream under stated rules; the
 - Nearest-rank percentiles on integer days. With hundreds of rows per term
   type the choice of percentile definition moves the figure by at most a day.
 
+### M-05a · Deferral exposure by term type and transaction type
+
+> **Definition.** M-05's `days_pending` distribution cut a second way, by
+> the deferred order's `transaction_type` as sent — `REDUCE`, `CANCEL`, and
+> `ADD` — with count, nearest-rank median and 90th percentile, minimum and
+> maximum per cell; plus, per term type, a histogram of `days_pending` in
+> 30-day bins from 0 to 360 (a bin labelled 300 holds 300 ≤ days < 330).
+
+| | |
+|---|---|
+| **Owner** | Aaron Robbins |
+| **Output** | `data/conformed/measures_stage2.json` → `M-05a_deferral_by_term_type_and_transaction_type`, `M-05a_histogram_30_day_bins` |
+| **Lineage** | `fact_deferral` (`term_type`, `transaction_type`, `days_pending`) |
+| **Population** | All deferred orders, as M-05 |
+
+**Limits.**
+- **The `ADD` rows are real deferrals.** An accepted order labelled `ADD`
+  whose quantity lay between the register and the effective quantity raised
+  a pending reduction target rather than adding licences (rule 4.2, second
+  row); it waits for the boundary like any reduction. The label is the
+  sender's; the effect is what M-05 measures.
+- Nearest-rank percentiles (rule 8.2); a `median_low` would differ by at
+  most one day on even counts and is not what is published.
+- The histogram's right tail is partly the window's edge (see M-05). The
+  bins are published so the shape can be drawn without re-deriving it.
+
 ## M-06 · Derived share
 
 > **Definition.** The share of `fact_billable_month` rows, and of
@@ -195,6 +259,27 @@ Effective quantity is derived from the event stream under stated rules; the
 - A month with days in the observed first term and days in the first
   manufactured term is *not* derived (rule 5.2) and is flagged
   `straddles_boundary` instead.
+
+### M-06a · Derived share by term type
+
+> **Definition.** M-06's row share split by term type: for each of `annual`
+> and `monthly`, the count of `fact_billable_month` rows, the count with
+> `derived = true`, and the share.
+
+| | |
+|---|---|
+| **Owner** | Aaron Robbins |
+| **Output** | `data/conformed/measures_stage2.json` → `M-06a_derived_share_by_term_type` |
+| **Lineage** | `fact_billable_month.derived`, `.term_type` |
+| **Population** | Every subscription-month |
+
+**Limits.**
+- **The blended M-06 figure hides two different books.** Every monthly-term
+  month after the first is a manufactured term by construction, so the
+  monthly share is high by design; the annual share is the one that says how
+  much of the book has renewed inside the window. Read them separately.
+- Row share, not dollar share; the dollar split is in M-06 unsplit and is
+  not restated here.
 
 ## M-07 · Rejected-transaction rate
 
