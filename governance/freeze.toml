@@ -13,19 +13,16 @@ module = "cascadia-revenue-assurance"
 # deliberate act, exactly as for a real freeze date.
 as_of_date = "2026-06-30"
 
-# HEAD, still, and now for a different reason. The raw layer was frozen on
-# 2026-09-11 (commit "Freeze the raw layer", seed 20260911) and the conformed
-# layer committed the same day, both on build/stage-1. Pinning to a SHA on an
-# unmerged branch is premature: a squash merge would orphan it and the gate
-# would exit non-zero against a commit that no longer exists. Pin this to the
-# merge commit's SHA from a session after Aaron merges -- that is the act that
-# turns "matches the last commit" into "matches the freeze".
+# Pinned on 2026-09-14 to the merge commit of build/stage-1 on main, after Aaron
+# read and accepted the Stage 1 numbers. From here the gate asserts "matches
+# the freeze", not "matches the last commit". Advancing it is a deliberate
+# act: regenerate, re-freeze with a commit that says so, and re-pin here.
 #
 # Known limit of the template gate, observed here on 2026-09-11: it compares
 # with `git diff --quiet <baseline> -- <path>`, and an UNTRACKED protected
 # file produces no diff, so it passes. A green gate is a claim about committed
 # files; read it beside `git status`.
-baseline = "HEAD"
+baseline = "b47506bf5f18c2a7b0ac27f933ef58815725198f"
 
 # Part 1 has not run yet as of this commit -- nothing under data/raw/ or
 # data/conformed/ exists. These globs are staged now, from the brief's step
