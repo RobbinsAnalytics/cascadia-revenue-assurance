@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cascadia Revenue Assurance — contracted is not billable</title>
+<meta name="description" content="A synthetic subscription-licensing book in which the register's contracted quantity and the billable quantity are different numbers, kept apart by timing rules. Seeded, disclosed, re-derived down two independent paths.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Cascadia Revenue Assurance — contracted is not billable">
+<meta property="og:description" content="The same reduction waits a median 16 days on a monthly term and 229 on an annual one. A synthetic book, a stated rule, and a register that is quietly wrong every month.">
+<meta property="og:image" content="https://www.robbinsanalytics.com/assets/thumb-revenue-assurance.png">
+<meta property="og:url" content="https://www.robbinsanalytics.com/cascadia-revenue-assurance/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://www.robbinsanalytics.com/assets/thumb-revenue-assurance.png">
+<link rel="icon" href="assets/favicon.svg?v=9f2fe5d980" type="image/svg+xml">
+<link rel="stylesheet" href="assets/cascadia.css?v=aa051fcee5">
+<style>
+  .answers { display:flex; flex-wrap:wrap; gap:18px; margin:18px 0 6px; }
+  .answer { flex:1 1 210px; border:1px solid var(--grid); border-radius:3px;
+            padding:14px 16px; background:var(--surface); min-width:0; }
+  .answer .lbl { font:12px/1.5 var(--sans); color:var(--ink-2);
+                 text-transform:uppercase; letter-spacing:.06em; margin:0; }
+  .answer .val { font:700 28px/1.15 var(--serif); margin:4px 0 2px; color:var(--ink);
+                 overflow-wrap:anywhere; }
+  .answer .note { font:13px/1.5 var(--sans); color:var(--ink-2); margin:0; }
+  .chart { width:100%; }
+  .chart-summary { font:13px/1.6 var(--sans); color:var(--ink); margin:0 2px 8px; max-width:72ch; }
+  .chart-note { font:13px/1.55 var(--serif); color:var(--ink-s1); margin:6px 2px 0; max-width:72ch; }
+  .chart-note.glacier { color:var(--ink-s2); }
+  .chart-note.madrona { color:var(--ink-s3); }
+  details.data-table { margin:8px 2px 0; }
+  details.data-table summary { font:12px/1.5 var(--sans); color:var(--ink-2); cursor:pointer;
+                               min-height:24px; }
+  .table-scroll { overflow-x:auto; }
+  details.data-table table { border-collapse:collapse; margin-top:8px; font:12px/1.5 var(--sans); }
+  details.data-table caption { display:block; text-align:left; font-weight:600; padding:4px 0;
+                               color:var(--ink); }
+  details.data-table th, details.data-table td { border:1px solid var(--grid); padding:4px 8px;
+                               text-align:right; white-space:nowrap; }
+  details.data-table th[scope="row"] { text-align:left; font-weight:400; white-space:normal; }
+  details.data-table thead th { background:#F3F5F2; text-align:right; }
+  .governance-note { border-left:3px solid var(--s1); padding:2px 0 2px 14px; margin:16px 2px;
+                     font:14px/1.65 var(--sans); color:var(--ink); max-width:72ch; }
+  .disclosure-band { border:1px solid var(--grid); border-radius:3px; background:var(--surface);
+                     padding:12px 16px; margin:14px 0 0; font:13px/1.6 var(--sans); color:var(--ink);
+                     max-width:80ch; }
+  .disclosure-band strong { color:var(--ink); }
+  h2 { font:600 24px/1.3 var(--serif); margin:34px 0 6px; }
+  h3 { font:600 17px/1.35 var(--serif); margin:22px 0 4px; }
+  .lede { font:17px/1.65 var(--serif); max-width:70ch; }
+  .method p { max-width:80ch; }
+  @media (max-width:400px) { .answer .val { font-size:22px; } }
+</style>
+<script src="assets/echarts.min.js?v=334d8b37c4"></script>
+<!-- Local, and after ECharts so registerTheme('cascadia') finds it. -->
+<script src="assets/cascadia-echarts-theme.js?v=94e9c46a07"></script>
+</head>
+<body>
+
+<!--CASCADIA_DATA_START-->
+<script id="cascadia-data" type="application/json">{"asOf":"2026-06-30","seed":20260911,"disclosure":"Synthetic data from a seeded generator (seed 20260911). Simulated: not a real company, customer, partner, product or book of business.","source":"Synthetic, seeded generator (seed 20260911)","c1":{"bins":[0,30,60,90,120,150,180,210,240,270,300,330,360],"annual":[32,53,44,50,67,58,65,80,67,64,100,116,49],"monthly":[580,35,0,0,0,0,0,0,0,0,0,0,0],"n":{"annual":845,"monthly":615},"median":{"annual":229,"monthly":16},"p90":{"annual":353,"monthly":28},"max":{"annual":365,"monthly":31},"modalBin":{"annual":330,"monthly":0},"finding":"A reduction or cancellation takes effect after a median 16 days on a monthly term and a median 229 days on an annual one","subtitle":"Days from an order's receipt to the term boundary where it was scheduled to land, for all 1,460 deferred orders (845 annual, 615 monthly), in 30-day bins. Both panels share the same axes.","annotation":"Most common wait 330\u2013359 days; the right tail is partly the window's edge","summary":"Two histograms of days pending, one per term type, same axes: 30-day bins from 0\u201329 up to 360\u2013389 days on the horizontal axis, count of deferred orders on the vertical. Monthly term: 615 orders, median 16 days, 90th percentile 28, maximum 31; the mass sits in the 0\u201329 day bin (580 orders). Annual term: 845 orders, median 229 days, 90th percentile 353, maximum 365; the counts spread across every bin and are largest in the 330\u2013359 day bin (116 orders).","ariaLabel":"Two histograms of days pending by term type, 30-day bins, shared axes. Monthly median 16 days, annual median 229 days.","provenance":{"source":"Synthetic, seeded generator (seed 20260911)","asOf":"2026-06-30","flags":"right tail partly window-censored; not trimmed"},"table":[["0\u201329","580","32"],["30\u201359","35","53"],["60\u201389","0","44"],["90\u2013119","0","50"],["120\u2013149","0","67"],["150\u2013179","0","58"],["180\u2013209","0","65"],["210\u2013239","0","80"],["240\u2013269","0","67"],["270\u2013299","0","64"],["300\u2013329","0","100"],["330\u2013359","0","116"],["360\u2013389","0","49"]],"detail":[["Annual","REDUCE","526","235","353","2","365"],["Annual","CANCEL","279","226","353","1","364"],["Annual","ADD","40","152","275","18","352"],["Monthly","REDUCE","403","16","28","1","31"],["Monthly","CANCEL","212","17","29","1","31"]],"tookEffect":{"annual":376,"monthly":587},"landed":{"annual":452,"monthly":588}},"c2":{"rows":[{"termType":"annual","cause":"cancel_riding_out","label":"Annual \u2014 cancellations riding out the term","cents":3556000,"dollars":"$35,560","months":127,"licences":3556},{"termType":"annual","cause":"deferred_reduction","label":"Annual \u2014 deferred reductions","cents":2062000,"dollars":"$20,620","months":221,"licences":2062},{"termType":"monthly","cause":"deferred_reduction","label":"Monthly \u2014 deferred reductions","cents":163200,"dollars":"$1,632","months":12,"licences":136},{"termType":"monthly","cause":"cancel_riding_out","label":"Monthly \u2014 cancellations riding out the term","cents":145200,"dollars":"$1,452","months":15,"licences":121}],"totalCents":5926400,"annualCents":5618000,"annualShare":0.9479616630669546,"cancelShareOfAnnual":0.6329654681381275,"asOfMonth":"2026-06","finding":"$56,180 of the $59,264 June 2026 backlog sits on annual terms, and $35,560 of that is cancellations still billing","subtitle":"Month-end gap between effective and register licences at 2026-06-30, in dollars at the term type's monthly rate, by term type and by cause. The count beside each bar is subscription-months.","annotation":"63% of annual backlog dollars are cancellations still billing","summary":"Horizontal bar chart, four bars, dollars per month on the horizontal axis from $0. Annual \u2014 cancellations riding out the term: $35,560 across 127 subscription-months (3,556 licences); Annual \u2014 deferred reductions: $20,620 across 221 subscription-months (2,062 licences); Monthly \u2014 deferred reductions: $1,632 across 12 subscription-months (136 licences); Monthly \u2014 cancellations riding out the term: $1,452 across 15 subscription-months (121 licences). Total $59,264. Annual terms carry 94.8% of the dollars; within annual, cancellations are the larger dollars ($35,560 vs $20,620) and deferred reductions the larger count (221 vs 127 subscription-months).","ariaLabel":"Horizontal bar chart of the June 2026 backlog in dollars by term type and cause, four bars, largest $35,560.","provenance":{"source":"Synthetic, seeded generator (seed 20260911)","asOf":"2026-06-30","flags":"month-end run rate, June 2026 only"},"table":[["Annual \u2014 cancellations riding out the term","$35,560","127","3,556"],["Annual \u2014 deferred reductions","$20,620","221","2,062"],["Monthly \u2014 deferred reductions","$1,632","12","136"],["Monthly \u2014 cancellations riding out the term","$1,452","15","121"]]},"c3":{"points":[{"month":"2024-07","label":"Jul 2024","effective":3752,"register":3723,"gap":29,"share":0.007729211087420042},{"month":"2024-08","label":"Aug 2024","effective":6694,"register":6611,"gap":83,"share":0.012399163429937257},{"month":"2024-09","label":"Sep 2024","effective":13139,"register":12944,"gap":195,"share":0.014841312124210367},{"month":"2024-10","label":"Oct 2024","effective":15774,"register":15551,"gap":223,"share":0.014137187777355141},{"month":"2024-11","label":"Nov 2024","effective":20695,"register":19685,"gap":1010,"share":0.048804058951437544},{"month":"2024-12","label":"Dec 2024","effective":23396,"register":22846,"gap":550,"share":0.023508292015729185},{"month":"2025-01","label":"Jan 2025","effective":26302,"register":25509,"gap":793,"share":0.030149798494411073},{"month":"2025-02","label":"Feb 2025","effective":29443,"register":28265,"gap":1178,"share":0.040009509900485685},{"month":"2025-03","label":"Mar 2025","effective":33163,"register":31941,"gap":1222,"share":0.03684829478635829},{"month":"2025-04","label":"Apr 2025","effective":38864,"register":37090,"gap":1774,"share":0.04564635652531906},{"month":"2025-05","label":"May 2025","effective":43925,"register":41831,"gap":2094,"share":0.047672168468981216},{"month":"2025-06","label":"Jun 2025","effective":49368,"register":47141,"gap":2227,"share":0.04511019283746556},{"month":"2025-07","label":"Jul 2025","effective":52594,"register":49768,"gap":2826,"share":0.0537323649085447},{"month":"2025-08","label":"Aug 2025","effective":57263,"register":53216,"gap":4047,"share":0.07067390810820251},{"month":"2025-09","label":"Sep 2025","effective":61691,"register":57307,"gap":4384,"share":0.07106385048062117},{"month":"2025-10","label":"Oct 2025","effective":66072,"register":61432,"gap":4640,"share":0.0702264196633975},{"month":"2025-11","label":"Nov 2025","effective":71210,"register":65902,"gap":5308,"share":0.07454009268361185},{"month":"2025-12","label":"Dec 2025","effective":73988,"register":68147,"gap":5841,"share":0.07894523436232903},{"month":"2026-01","label":"Jan 2026","effective":78244,"register":71280,"gap":6964,"share":0.0890036296712847},{"month":"2026-02","label":"Feb 2026","effective":81596,"register":75033,"gap":6563,"share":0.08043286435609588},{"month":"2026-03","label":"Mar 2026","effective":87970,"register":81433,"gap":6537,"share":0.07430942366715926},{"month":"2026-04","label":"Apr 2026","effective":91852,"register":86021,"gap":5831,"share":0.06348255889909855},{"month":"2026-05","label":"May 2026","effective":96969,"register":90831,"gap":6138,"share":0.06329857995854345},{"month":"2026-06","label":"Jun 2026","effective":102554,"register":96679,"gap":5875,"share":0.05728689275893675}],"n":24,"monthsWithGap":24,"every":true,"finding":"In every one of 24 months the register showed fewer licences than were billable; 5,875 fewer (5.7%) at June 2026","subtitle":"Sum of effective and of register licences at each month end, Jul 2024 to Jun 2026, with the gap between them shaded. Gap share is gap divided by effective.","annotation":"June 2026: 5,875 licences the register does not show","summary":"Line chart, two lines over 24 month ends from Jul 2024 to Jun 2026, licences on the vertical axis from 0. Effective licences rise from 3,752 to 102,554; register licences rise from 3,723 to 96,679. The effective line sits above the register line at every month end. The gap grows from 29 licences to a peak of 6,964 in Jan 2026 and is 5,875 at Jun 2026; as a share of effective it peaks at 8.9% in Jan 2026 and ends at 5.7%.","ariaLabel":"Line chart of effective versus register licences at 24 month ends, gap shaded; gap 5,875 licences at Jun 2026.","provenance":{"source":"Synthetic, seeded generator (seed 20260911)","asOf":"2026-06-30","flags":"rows in manufactured renewals are derived under a stated rule and flagged"},"table":[["Jul 2024","3,752","3,723","29","0.8%"],["Aug 2024","6,694","6,611","83","1.2%"],["Sep 2024","13,139","12,944","195","1.5%"],["Oct 2024","15,774","15,551","223","1.4%"],["Nov 2024","20,695","19,685","1,010","4.9%"],["Dec 2024","23,396","22,846","550","2.4%"],["Jan 2025","26,302","25,509","793","3.0%"],["Feb 2025","29,443","28,265","1,178","4.0%"],["Mar 2025","33,163","31,941","1,222","3.7%"],["Apr 2025","38,864","37,090","1,774","4.6%"],["May 2025","43,925","41,831","2,094","4.8%"],["Jun 2025","49,368","47,141","2,227","4.5%"],["Jul 2025","52,594","49,768","2,826","5.4%"],["Aug 2025","57,263","53,216","4,047","7.1%"],["Sep 2025","61,691","57,307","4,384","7.1%"],["Oct 2025","66,072","61,432","4,640","7.0%"],["Nov 2025","71,210","65,902","5,308","7.5%"],["Dec 2025","73,988","68,147","5,841","7.9%"],["Jan 2026","78,244","71,280","6,964","8.9%"],["Feb 2026","81,596","75,033","6,563","8.0%"],["Mar 2026","87,970","81,433","6,537","7.4%"],["Apr 2026","91,852","86,021","5,831","6.3%"],["May 2026","96,969","90,831","6,138","6.3%"],["Jun 2026","102,554","96,679","5,875","5.7%"]],"peak":{"month":"2026-01","gap":6964}},"c4":{"rows":[{"termType":"monthly","label":"Monthly term","rows":20024,"derived":16641,"share":0.8310527367159408},{"termType":"annual","label":"Annual term","rows":30086,"derived":5607,"share":0.1863657515123313}],"blended":0.4439832368788665,"rowsTotal":50110,"termsDerived":19111,"termsTotal":23508,"finding":"83% of monthly-term billing rows and 19% of annual-term rows fall in a renewal no transaction marked","subtitle":"Share of subscription-month rows whose every effective day lies in a manufactured term, by term type; 44.4% of all 50,110 rows blended.","annotation":"Every monthly term after the first is manufactured","summary":"Horizontal bar chart, two bars, percent on the horizontal axis from 0 to 100. Monthly term: 83.1% (16,641 of 20,024 rows); Annual term: 18.6% (5,607 of 30,086 rows). Blended: 44.4% of 50,110 rows; 19,111 of 23,508 term instances are manufactured.","ariaLabel":"Horizontal bar chart of derived row share by term type: monthly 83.1%, annual 18.6%.","provenance":{"source":"Synthetic, seeded generator (seed 20260911)","asOf":"2026-06-30","flags":"derived = no transaction opened the term"},"table":[["Monthly term","83.1%","16,641","20,024"],["Annual term","18.6%","5,607","30,086"]]}}</script>
+<!--CASCADIA_DATA_END-->
+
+<div class="wrap">
+
+<header class="site-head">
+  <p class="kicker"><a href="https://www.robbinsanalytics.com/">Cascadia Portfolio</a> · Revenue Assurance</p>
+  <h1>What a customer is contracted for and what they are billable for are different numbers</h1>
+  <p class="subtitle">A subscription-licensing book with three timing rules: adding licences takes effect
+  at once, reducing them waits for the next term boundary, and cancelling rides out the term. The order
+  register records what each customer asked for. The billable quantity is derived from the event stream
+  and the rules, and the two sit apart for up to a year on an annual term with nothing erroring and no
+  register showing it.</p>
+  <div class="disclosure-band"><strong>Synthetic data from a seeded generator (seed 20260911). Simulated: not a real company, customer, partner, product or book of business.</strong> Every figure on this page is stated as of
+  <strong>2026-06-30</strong> and computed at build time from certified artifacts that two independently
+  written derivation paths agree on cell for cell. No figure may be read as a claim about any real book of
+  business.</div>
+</header>
+
+<h2>The decision this page serves</h2>
+<p class="lede">Whether to keep invoicing from the register's current quantity, or to derive the billable
+quantity from the event stream and the rules and reconcile the invoice to it.</p>
+<p class="chart-summary">The reader is the finance or revenue-operations owner who signs the monthly
+invoice run and is accountable for the number on it. The benchmark is the register's own quantity, the
+naive answer. Every chart below shows where that answer and the derived one part ways, and by how much.</p>
+
+<div class="answers">
+  <div class="answer">
+    <p class="lbl">Effective licences at 2026-06-30</p>
+    <p class="val">102,554</p>
+    <p class="note">Billable under the rules, summed across every subscription effective that day (M-01).</p>
+  </div>
+  <div class="answer">
+    <p class="lbl">Register licences at 2026-06-30</p>
+    <p class="val">96,679</p>
+    <p class="note">What the register shows: the last quantity each customer asked for (M-02).</p>
+  </div>
+  <div class="answer">
+    <p class="lbl">Entitlement gap</p>
+    <p class="val">5,875 licences</p>
+    <p class="note">$59,264 per month at the term rates, 5.5% of the month's
+    billable (M-03). The register never exceeds the effective quantity, so the gap is never negative.</p>
+  </div>
+  <div class="answer">
+    <p class="lbl">Subscription-months carrying a gap</p>
+    <p class="val">8.9%</p>
+    <p class="note">4,467 of 50,110 subscription-months across the 24-month window.</p>
+  </div>
+</div>
+
+<h2>How long a reduction waits depends on the term, not on the customer</h2>
+<div class="chart-card">
+  <p id="sum-c1" class="chart-summary"></p>
+  <div id="c1" class="chart" style="height:460px"></div>
+  <p id="note-c1" class="chart-note" hidden>Most common wait 330–359 days; the right tail is partly the window&#x27;s edge</p>
+  <details class="data-table"><summary>Chart 1 data table</summary><div class="table-scroll"><table id="tbl-c1"><caption>Chart 1 data — deferred orders by days pending, 30-day bins</caption><thead><tr><th scope="col">Days pending</th><th scope="col">Monthly term (orders)</th><th scope="col">Annual term (orders)</th></tr></thead><tbody><tr><th scope="row">0–29</th><td>580</td><td>32</td></tr><tr><th scope="row">30–59</th><td>35</td><td>53</td></tr><tr><th scope="row">60–89</th><td>0</td><td>44</td></tr><tr><th scope="row">90–119</th><td>0</td><td>50</td></tr><tr><th scope="row">120–149</th><td>0</td><td>67</td></tr><tr><th scope="row">150–179</th><td>0</td><td>58</td></tr><tr><th scope="row">180–209</th><td>0</td><td>65</td></tr><tr><th scope="row">210–239</th><td>0</td><td>80</td></tr><tr><th scope="row">240–269</th><td>0</td><td>67</td></tr><tr><th scope="row">270–299</th><td>0</td><td>64</td></tr><tr><th scope="row">300–329</th><td>0</td><td>100</td></tr><tr><th scope="row">330–359</th><td>0</td><td>116</td></tr><tr><th scope="row">360–389</th><td>0</td><td>49</td></tr></tbody></table></div></details>
+  <details class="data-table"><summary>Chart 1 detail — by the order's label</summary><div class="table-scroll"><table id="tbl-c1-detail"><caption>Chart 1 detail — by term type and the order&#x27;s label (M-05a)</caption><thead><tr><th scope="col">Term type</th><th scope="col">Order label</th><th scope="col">Orders</th><th scope="col">Median days</th><th scope="col">90th pct days</th><th scope="col">Min</th><th scope="col">Max</th></tr></thead><tbody><tr><th scope="row">Annual</th><td>REDUCE</td><td>526</td><td>235</td><td>353</td><td>2</td><td>365</td></tr><tr><th scope="row">Annual</th><td>CANCEL</td><td>279</td><td>226</td><td>353</td><td>1</td><td>364</td></tr><tr><th scope="row">Annual</th><td>ADD</td><td>40</td><td>152</td><td>275</td><td>18</td><td>352</td></tr><tr><th scope="row">Monthly</th><td>REDUCE</td><td>403</td><td>16</td><td>28</td><td>1</td><td>31</td></tr><tr><th scope="row">Monthly</th><td>CANCEL</td><td>212</td><td>17</td><td>29</td><td>1</td><td>31</td></tr></tbody></table></div></details>
+</div>
+
+<div class="governance-note">
+<strong>The wait is the rule's, not the customer's.</strong> A reduction or a cancellation is refused
+mid-term and lands at the next boundary, so on a monthly term it waits at most 31 days and on an
+annual term up to 365. Of the 845 annual deferrals, 452 had reached their boundary by
+2026-06-30 and 376 took effect unchanged; the rest were superseded by a later order or are still
+waiting. <strong>The right tail is partly the window's edge:</strong> half the annual book is still in its
+first term at the as-of date, so an order placed late in a term, with a short wait, is under-observed.
+The distribution is shown as measured, not trimmed to move the median.
+</div>
+
+<h2>Where the backlog sits at the as-of date</h2>
+<div class="chart-card">
+  <p id="sum-c2" class="chart-summary"></p>
+  <div id="c2" class="chart" style="height:320px"></div>
+  <p id="note-c2" class="chart-note" hidden>63% of annual backlog dollars are cancellations still billing</p>
+  <details class="data-table"><summary>Chart 2 data table</summary><div class="table-scroll"><table id="tbl-c2"><caption>Chart 2 data — June 2026 backlog by term type and cause (M-03a)</caption><thead><tr><th scope="col">Term type and cause</th><th scope="col">Dollars per month</th><th scope="col">Subscription-months</th><th scope="col">Licences</th></tr></thead><tbody><tr><th scope="row">Annual — cancellations riding out the term</th><td>$35,560</td><td>127</td><td>3,556</td></tr><tr><th scope="row">Annual — deferred reductions</th><td>$20,620</td><td>221</td><td>2,062</td></tr><tr><th scope="row">Monthly — deferred reductions</th><td>$1,632</td><td>12</td><td>136</td></tr><tr><th scope="row">Monthly — cancellations riding out the term</th><td>$1,452</td><td>15</td><td>121</td></tr></tbody></table></div></details>
+</div>
+
+<div class="governance-note">
+<strong>Cancellations are the larger dollars; deferred reductions are the larger count.</strong> On
+annual terms, $35,560 of backlog sits on 127 subscription-months whose customer has
+cancelled and is still billable to term end, against $20,620 on 221 subscription-months
+waiting for a reduction to land. A register that goes to zero on the cancel date while billing continues for
+up to a year is the module's single largest source of gap, and it is a consequence of the rules rather than
+of any error. A subscription with both a pending reduction and a pending cancellation is counted with the
+cancellations, because the cancellation is what decides that no next term opens.
+</div>
+
+<h2>The register against the effective quantity, month by month</h2>
+<div class="chart-card">
+  <p id="sum-c3" class="chart-summary"></p>
+  <div id="c3" class="chart" style="height:420px"></div>
+  <p id="note-c3" class="chart-note madrona" hidden>June 2026: 5,875 licences the register does not show</p>
+  <details class="data-table"><summary>Chart 3 data table</summary><div class="table-scroll"><table id="tbl-c3"><caption>Chart 3 data — effective and register licences at each month end (M-01, M-02)</caption><thead><tr><th scope="col">Month</th><th scope="col">Effective licences</th><th scope="col">Register licences</th><th scope="col">Gap (licences)</th><th scope="col">Gap share of effective</th></tr></thead><tbody><tr><th scope="row">Jul 2024</th><td>3,752</td><td>3,723</td><td>29</td><td>0.8%</td></tr><tr><th scope="row">Aug 2024</th><td>6,694</td><td>6,611</td><td>83</td><td>1.2%</td></tr><tr><th scope="row">Sep 2024</th><td>13,139</td><td>12,944</td><td>195</td><td>1.5%</td></tr><tr><th scope="row">Oct 2024</th><td>15,774</td><td>15,551</td><td>223</td><td>1.4%</td></tr><tr><th scope="row">Nov 2024</th><td>20,695</td><td>19,685</td><td>1,010</td><td>4.9%</td></tr><tr><th scope="row">Dec 2024</th><td>23,396</td><td>22,846</td><td>550</td><td>2.4%</td></tr><tr><th scope="row">Jan 2025</th><td>26,302</td><td>25,509</td><td>793</td><td>3.0%</td></tr><tr><th scope="row">Feb 2025</th><td>29,443</td><td>28,265</td><td>1,178</td><td>4.0%</td></tr><tr><th scope="row">Mar 2025</th><td>33,163</td><td>31,941</td><td>1,222</td><td>3.7%</td></tr><tr><th scope="row">Apr 2025</th><td>38,864</td><td>37,090</td><td>1,774</td><td>4.6%</td></tr><tr><th scope="row">May 2025</th><td>43,925</td><td>41,831</td><td>2,094</td><td>4.8%</td></tr><tr><th scope="row">Jun 2025</th><td>49,368</td><td>47,141</td><td>2,227</td><td>4.5%</td></tr><tr><th scope="row">Jul 2025</th><td>52,594</td><td>49,768</td><td>2,826</td><td>5.4%</td></tr><tr><th scope="row">Aug 2025</th><td>57,263</td><td>53,216</td><td>4,047</td><td>7.1%</td></tr><tr><th scope="row">Sep 2025</th><td>61,691</td><td>57,307</td><td>4,384</td><td>7.1%</td></tr><tr><th scope="row">Oct 2025</th><td>66,072</td><td>61,432</td><td>4,640</td><td>7.0%</td></tr><tr><th scope="row">Nov 2025</th><td>71,210</td><td>65,902</td><td>5,308</td><td>7.5%</td></tr><tr><th scope="row">Dec 2025</th><td>73,988</td><td>68,147</td><td>5,841</td><td>7.9%</td></tr><tr><th scope="row">Jan 2026</th><td>78,244</td><td>71,280</td><td>6,964</td><td>8.9%</td></tr><tr><th scope="row">Feb 2026</th><td>81,596</td><td>75,033</td><td>6,563</td><td>8.0%</td></tr><tr><th scope="row">Mar 2026</th><td>87,970</td><td>81,433</td><td>6,537</td><td>7.4%</td></tr><tr><th scope="row">Apr 2026</th><td>91,852</td><td>86,021</td><td>5,831</td><td>6.3%</td></tr><tr><th scope="row">May 2026</th><td>96,969</td><td>90,831</td><td>6,138</td><td>6.3%</td></tr><tr><th scope="row">Jun 2026</th><td>102,554</td><td>96,679</td><td>5,875</td><td>5.7%</td></tr></tbody></table></div></details>
+</div>
+
+<div class="governance-note">
+<strong>A query that reads the register's current quantity is wrong about the invoice in every month a
+deferral is outstanding.</strong> The book grows through the whole window because subscriptions open
+throughout it, so the gap in licences grows with the book; the share of effective licences the register
+does not show is the figure to read, and it ends at 5.7%. The gap peaked at 6,964
+licences in Jan 2026. Rows in later months increasingly sit in manufactured renewals, which the
+next chart counts.
+</div>
+
+<h2>The renewals nobody sent</h2>
+<div class="chart-card">
+  <p id="sum-c4" class="chart-summary"></p>
+  <div id="c4" class="chart" style="height:260px"></div>
+  <p id="note-c4" class="chart-note glacier" hidden>Every monthly term after the first is manufactured</p>
+  <details class="data-table"><summary>Chart 4 data table</summary><div class="table-scroll"><table id="tbl-c4"><caption>Chart 4 data — derived row share by term type (M-06a)</caption><thead><tr><th scope="col">Term type</th><th scope="col">Derived share</th><th scope="col">Derived rows</th><th scope="col">All rows</th></tr></thead><tbody><tr><th scope="row">Monthly term</th><td>83.1%</td><td>16,641</td><td>20,024</td></tr><tr><th scope="row">Annual term</th><td>18.6%</td><td>5,607</td><td>30,086</td></tr></tbody></table></div></details>
+</div>
+
+<div class="governance-note">
+<strong>No transaction marks a renewal; a renewal is implied by the absence of a cancellation.</strong>
+The state machine manufactures the next term under a stated rule and flags every row that rests on one:
+19,111 of 23,508 term instances, and 44.4% of all billing rows. That is
+derivation under a written rule, declared on the row, and it is not the filling of a gap. The blended
+figure hides two books: monthly terms are 83.1% derived because every month after the first is a
+manufactured term, and annual terms are 18.6% derived because at most one renewal fits inside the
+window.
+</div>
+
+<h2>What was checked and found to be nothing</h2>
+<p class="chart-summary">Every partner invoice line and every Direct customer invoice line is a roll-up of
+subscription-months, re-derived through a second join. <strong>2,398 invoice lines
+(72 partner-by-month, 2,326 customer-by-month), 0 with a non-zero
+tie-out</strong> (M-08). Published because the value of a reconciliation is the discipline of checking,
+not the size of what it finds. Separately, 259 of 7,493 transactions received were refused
+under a fixed vocabulary of reasons and kept in the register rather than dropped (M-07); a refusal is a
+fact about the sender and says nothing about the engine.</p>
+
+<h2>How it stays right</h2>
+<div class="method">
+<p><strong>Two derivation paths, written to be different.</strong> A record-at-a-time state machine in
+Python derives every term, every subscription-month and every measure from the event stream and a
+normative rules document. A set-based SQL path in DuckDB, written from the same rules document and not
+from the first path's code, re-derives every published cell and must agree before anything is published.
+On this build it did, on every cell.</p>
+<p><strong>A hand-specified golden fixture written before either engine.</strong> Fifteen worked cases,
+including a boundary-day order, a monthly term opened on the 31st, and a Direct-channel subscription, with
+expected values computed by hand. Both paths pass it.</p>
+<p><strong>Derived rows are declared, never hidden.</strong> Every term and every billing row that rests on
+a manufactured renewal carries a <code>derived</code> flag, and Chart 4 counts them.</p>
+<p><strong>No accuracy, error-rate or correctness percentage exists in this module, and none may be
+added.</strong> Its only correctness claim is that an independent re-derivation agrees and that the golden
+fixture passes. That is a statement about method.</p>
+<p><strong>The layer the author cannot self-verify.</strong> Whether a reader who does not know the finding
+takes it away from these charts is not something the author can test alone. A blind reading panel reads
+static renders of this page before it ships; at the time this page was built, that panel had not yet run,
+and the page says so here rather than implying otherwise.</p>
+</div>
+
+<div class="disclosure">
+<h3>Disclosure</h3>
+<p>An independent portfolio project by Aaron Robbins. <strong>Synthetic data from a seeded generator (seed 20260911). Simulated: not a real company, customer, partner, product or book of business.</strong> Every customer,
+partner, subscription and transaction was invented by a seeded generator; the partner names are
+invented and resemble no real reseller, carrier or company. Nothing here is a claim about how any real
+company operates, and nothing is financial or legal advice.</p>
+<p>Source, governance documents, the rules the engines implement, and the build scripts:
+<a href="https://github.com/RobbinsAnalytics/cascadia-revenue-assurance">github.com/RobbinsAnalytics/cascadia-revenue-assurance</a>. Every figure on this
+page is computed at build time from <code>data/conformed/measures_manifest.json</code> and
+<code>data/conformed/measures_stage2.json</code>; the independent re-derivation that gates publication is
+<code>src/validate_measures.py</code>.</p>
+<p class="asof">As of <strong>2026-06-30</strong> · seed 20260911 · billable across the window $12,621,679.44</p>
+</div>
+
+</div>
+
+<script src="assets/page.js?v=a341f911c7"></script>
+</body>
+</html>
