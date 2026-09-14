@@ -85,11 +85,11 @@ through and fails closed. **It is inert until `git config core.hooksPath
 confirm with `git ls-files -s .githooks/pre-commit`. Run
 `python .claude/hooks/hook_test_matrix.py` to confirm the guards behave.
 
-**This repo needs an entry in `cascadia-standards/governance/hook_manifest.json`
-and cannot write one.** That entry is authored from a session rooted in
-`cascadia-standards`. Until it lands, `check_hook_drift.py` names this repo as
-undeclared estate-wide. **That is the honest signal, not breakage — do not
-"fix" it from here.**
+**This repo is declared in `cascadia-standards/governance/hook_manifest.json`**
+(2026-09-14: `lifecycle: active`, all four guard files `required`). That entry
+is authored and maintained from a session rooted in `cascadia-standards`,
+never from here. `check_hook_drift.py` is the authority on the current state
+of this repo's guards, not this file — run it rather than trusting this line.
 
 **This repo's own first commit was made from a session rooted at
 `C:\Projects`, deliberately.** Creating the repo and installing the guard
