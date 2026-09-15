@@ -132,9 +132,15 @@ Five facts from that build that are not inferable from the code:
 - **The design system ships no stylesheet.** `docs/assets/cascadia.css` is the
   Fee Examiner copy with its `@font-face` `url()` sources removed, because the
   woff2 files they name exist in neither repository and every load 404'd.
-- **The second breakpoint (900) is measured, not chosen.** Chart 2's in-plot
-  annotation needs bar + value label + 200 px of prose on one row; at 760 it
-  clipped. Below 900 the sentence is the note under the chart.
+- **Chart 2's annotation is never in the plot.** The first build reserved
+  room for it inside the frame and had to push the axis to twice the data to
+  fit it; a second breakpoint at 900 was tried and then removed with the
+  in-plot placement. The sentence is the note under the chart at every width.
+- **Chart 1's panels take independent scales by decision (D15),** overriding
+  the reading panel's Rule 6.2 finding. Do not "fix" it back to a shared scale.
+- **The desktop app's Browser pane loads `docs/index.html` as a `data:`
+  snapshot in which no script runs** (no ECharts, zero canvases). A live read
+  of the page needs a real browser on the `file://` path or a served copy.
 - **A new file under `data/conformed/` fails the pinned freeze gate** even
   when it is derived from frozen inputs, because it did not exist at the
   baseline. `measures_stage2.json` is a declared `[[permitted_edit]]` in

@@ -215,3 +215,35 @@ semantics rather than merely sharpen them:
 been a defect in the rules, per D12, discovered later at more cost.
 
 **Carried by:** rules §1.2, §4.2, §10; G13 in the golden fixture.
+
+## D15 · Chart 1's two panels take independent scales — an author override of the reading panel
+
+**Decided 2026-09-14 by Aaron, on his direct read of the rendering.**
+
+The Stage 2 page's first chart shows the deferral distribution for monthly and
+annual terms as two panels. The reading panel (finding #11, two seats) asked
+that the panels keep one shared vertical scale, per VIZ-PRINCIPLES Rule 6.2,
+and that bar labels be added so the squashed annual bars could be read. Aaron
+read the same render and decided the other way, verbatim: *"These charts
+don't need the same axis. It is a bunch of dead space. 1st chart the x axis has
+11 empty values. 2nd chart never goes above 200, so everything after that is
+dead space."*
+
+**So each panel takes its own vertical scale and is trimmed to its populated
+bins.** The monthly panel has non-zero counts in 2 of 13 bins and a tallest
+bar of 580; the annual panel spreads across all 13 with a tallest bar of 116.
+On one scale the annual panel, which carries the thesis, reached a fifth of
+its height. The cost is stated: the two panels are no longer comparable by
+eye, and the subtitle says so ("each panel is drawn on its own scale").
+
+**This is an override of a panel finding, recorded as one.** The panel was
+not wrong to cite Rule 6.2; the author judged the dead-space cost higher than
+the cross-panel comparability benefit for two ranges that differ five-fold.
+Recorded here so it reads as a decision rather than an oversight.
+
+*Counterfactual:* keeping the shared scale and labelling the bars, as the
+panel asked. It would have kept 6.2 and left the chart's subject at a fifth
+of its canvas.
+
+**Carried by:** `docs/assets/page.js` (Chart 1, `niceAxis` per panel, `trim`);
+`governance/chart-review.md` §3c #11 ("superseded"); the chart's subtitle.
