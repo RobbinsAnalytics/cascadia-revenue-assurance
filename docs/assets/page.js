@@ -1,5 +1,6 @@
 /**
- * Cascadia Revenue Assurance — chart layer (Stage 2).
+ * Cascadia Revenue Assurance — chart layer (Stage 2, after the reading panel
+ * and Aaron's first direct read, 2026-09-14).
  *
  * Reads the build-time data block written by src/build_page.py. No figure or
  * sentence is composed here that is not already in that block (K2): every
@@ -12,17 +13,24 @@
  * carries the finding as well as the canvas does, and carry an L3 shape
  * clause in their summary instead.
  *
- * EVERY CHART CALLS cascadiaAnnotation at the design width (Rule 3.4). At the
- * narrow width the annotation prose leaves the plot (Rule 5.5 drop order,
- * step 4) and is shown as a visible note under the chart instead, so the
- * sentence is never lost, only moved.
+ * ANNOTATIONS. Charts 1, 3 and 4 carry theirs in the plot at the design width
+ * and as a note under the plot below the declared breakpoint (Rule 5.5 drop
+ * order, step 4). Chart 2's annotation is ALWAYS the note under the plot
+ * (panel finding #7, Aaron's read): reserving room for it inside the frame
+ * pushed the axis to twice the data at every width.
  *
  * ENTITY COLOURS ARE FIXED ACROSS THE PAGE (Rule 2.3.1): annual = Evergreen,
  * monthly = Glacier, wherever a term type is encoded. Chart 3 encodes two
- * different entities — the effective line (Evergreen, the series the title
- * is about) and the register line (Rain, directly labelled) — and shades the
- * gap between them in Madrona, the unfavourable hue, with the sign carried by
- * the annotation and the labels (Rule 2.3.2).
+ * different entities — the effective line (Evergreen, solid, the series the
+ * title is about) and the register line (Rain, dashed, directly labelled) —
+ * and shades the gap between them in Madrona, the unfavourable hue, with the
+ * sign carried by the annotation and the labels (Rule 2.3.2). Dash and weight
+ * separate the two lines without hue (panel #21, Rule 5.4).
+ *
+ * AXIS BOUNDS are derived by niceAxis(): the bound is a multiple of a nice
+ * tick step, so the axis maximum is never rendered as its own crowded tick
+ * (panel #18). Chart 1's panels each take their own bound and their own bin
+ * range (Aaron, overriding panel #11 — decision record D15).
  */
 (function () {
   'use strict';
@@ -36,33 +44,16 @@
 
   function el(id) { return document.getElementById(id); }
   function nf(n) { return Number(n).toLocaleString('en-US'); }
-  function usd(cents) {
-    var c = Math.round(Math.abs(cents)), s = cents < 0 ? '-' : '';
-    return s + '$' + nf(Math.floor(c / 100)) + (c % 100 ? '.' + String(c % 100).padStart(2, '0') : '');
-  }
   function pct(x, dp) { return (100 * x).toFixed(dp == null ? 1 : dp) + '%'; }
 
   /* ---- measured text, never guessed ---------------------------------- */
   var _m = document.createElement('canvas').getContext('2d');
   function textWidth(text, font) { _m.font = font; return _m.measureText(String(text)).width; }
-  function wrappedLines(text, px, font) {
-    _m.font = font;
-    var words = String(text).split(' '), lines = 1, cur = '';
-    for (var i = 0; i < words.length; i++) {
-      var test = cur ? cur + ' ' + words[i] : words[i];
-      if (_m.measureText(test).width > px && cur) { lines++; cur = words[i]; }
-      else { cur = test; }
-    }
-    return lines;
-  }
   /**
    * Wrap a sentence at SPACES ONLY, measured in the font it will render in,
    * and return it with explicit newlines. ECharts' own 'break' overflow treats
    * every ASCII punctuation mark and every non-ASCII character as a break
-   * opportunity, so left to itself it split a title inside "$35,560" (after
-   * the comma) and could split "330–359" at the dash. A figure broken across
-   * two lines reads as two figures. Pre-wrapped lines each fit their width,
-   * so the renderer never has to choose a break of its own.
+   * opportunity, so left to itself it split a title inside "$35,560".
    */
   function prewrap(text, px, font) {
     _m.font = font;
@@ -77,7 +68,6 @@
   }
   var TITLE_FONT = '600 17px ' + SERIF, SUB_FONT = '12px ' + SANS, ANN_FONT = '13px ' + SERIF;
 
-  /** The theme's title block, pre-wrapped, plus the height it will take (17px/26 serif + 12px/18 sans). */
   function titleBlock(L, finding, subtitle) {
     var px = L.w - 14 - 10;
     var f = prewrap(finding, px, TITLE_FONT), s = prewrap(subtitle, px, SUB_FONT);
@@ -85,47 +75,64 @@
     return { title: cascadiaTitle(f, s, { width: L.w - 14 }),
              top: Math.round(6 + tl * 26 + 6 + sl * 18 + 14) };
   }
-  /** An annotation pre-wrapped to its own box width, in the serif it renders in. */
   function annotation(text, opts) {
     var w = opts.width || 180;
-    return cascadiaAnnotation(prewrap(text, w - 6, ANN_FONT), opts);
+    var mp = cascadiaAnnotation(prewrap(text, w - 6, ANN_FONT), opts);
+    if (opts.fontSize) mp.data[0].label.fontSize = opts.fontSize;
+    return mp;
+  }
+
+  /**
+   * A value-axis bound that is a whole number of nice ticks (K1: derived from
+   * the data; panel #18: the max never renders as its own crowded tick).
+   * Returns {max, interval}; both go on the axis so the last tick IS the max.
+   */
+  function niceAxis(maxVal, headroom, ticks) {
+    var target = (maxVal * headroom) / (ticks || 4);
+    var mag = Math.pow(10, Math.floor(Math.log(target) / Math.LN10));
+    var step = null, cands = [1, 2, 2.5, 5, 10];
+    for (var i = 0; i < cands.length; i++) {
+      if (cands[i] * mag >= target) { step = cands[i] * mag; break; }
+    }
+    return { max: Math.ceil((maxVal * headroom) / step) * step, interval: step };
   }
 
   /**
    * EVERY WIDTH AT WHICH THIS PAGE CHANGES ITS MIND, DECLARED IN ONE PLACE.
-   * K6's ladder is derived from this list by src/render_charts.py. One
-   * breakpoint: below it, Chart 1's panels stack instead of sitting side by
-   * side, in-plot annotations move out of the plot, and value labels drop
-   * their unit words. Measured on the HOST element's width, not the window.
+   * One breakpoint. Below it Chart 1's panels stack, in-plot annotations
+   * become the note under the plot, and value labels drop their unit words.
+   * Measured on the HOST element's width, not the window. The second
+   * breakpoint the first build carried (900, for Chart 2's in-plot
+   * annotation) is gone with that annotation's in-plot placement.
    */
-  var BP = { narrow: 560, roomy: 900 };
-  window.CASCADIA_BREAKPOINTS = [BP.narrow, BP.roomy];
-  // BP.roomy exists for Chart 2 alone: its in-plot annotation needs the bar,
-  // a long value label and 200 px of prose to fit on one row. Measured: at a
-  // host width of 900 the row holds them with the bar at a third of the plot;
-  // at 760 it did not (the prose clipped at the frame). Below BP.roomy that
-  // chart's annotation is the note under the chart; the other three switch at
-  // BP.narrow. Declared here, not measured ad hoc, so K6 renders both sides.
+  var BP = { narrow: 560 };
+  window.CASCADIA_BREAKPOINTS = [BP.narrow];
 
   function layout(host) {
     var w = host.clientWidth || CASCADIA.minCanvasPx;
     return {
       w: w,
       narrow: w < BP.narrow,
-      roomy: w >= BP.roomy,
       tapTip: !(window.matchMedia &&
                 window.matchMedia('(hover: hover) and (pointer: fine)').matches)
     };
   }
 
-  /** Tooltip: tap-to-pin at a fixed position on touch, hover-following otherwise (Rule 5.5). */
+  /**
+   * Tooltip: tap-to-pin at a fixed position on touch, hover-following
+   * otherwise (Rule 5.5). triggerOn takes only the tokens ECharts documents:
+   * 'mousemove' for a fine pointer, 'mousemove|click' for touch. (The first
+   * build passed 'mousemove|mouseout'; the vendored build tests the string by
+   * substring so it still fired, but an undocumented token is not something
+   * to leave in place.)
+   */
   function tip(L, opts) {
     return {
       show: true,
       trigger: opts.trigger || 'item',
       confine: true,
       appendToBody: false,
-      triggerOn: L.tapTip ? 'mousemove|click' : 'mousemove|mouseout',
+      triggerOn: L.tapTip ? 'mousemove|click' : 'mousemove',
       position: L.tapTip ? function (pt, params, dom, rect, size) {
         var cw = size.contentSize[0], chh = size.contentSize[1];
         var x = Math.max(4, Math.min(Math.round(pt[0] - cw / 2), size.viewSize[0] - cw - 4));
@@ -137,7 +144,13 @@
     };
   }
 
-  /** The common tail: sizing, strip, summary, access layers, the narrow-width note. */
+  /**
+   * The common tail: sizing, strip, summary, access layers, the note.
+   * Visual order inside the card is set by CSS `order` (chart, note,
+   * navigator, strip, summary, tables) so the summary stays FIRST in the DOM
+   * for Rule 5.1 and renders below the canvas for a sighted reader (panel
+   * #15), and the note sits between the plot and the strip (panel #12).
+   */
   function finish(host, ch, spec, L) {
     cascadiaResize(host, ch);
     cascadiaProvenance(host, spec.provenance);
@@ -146,22 +159,14 @@
                                tableId: 'tbl-' + host.id });
     if (spec.nav) cascadiaNavigator(host, spec.nav);
     var note = el('note-' + host.id);
-    // Prose leaves the plot at narrow widths (5.5 step 4) and becomes a
-    // visible note under the chart; the sentence is moved, never dropped.
     if (note) note.hidden = !(spec.noteVisible == null ? L.narrow : spec.noteVisible);
     return ch;
   }
 
-  /**
-   * Build once for the width the host has, and rebuild only when the host
-   * crosses the declared breakpoint. cascadiaResize handles every other
-   * resize. Rebuilding disposes the old instance first; the strip and the
-   * navigator are idempotent by owner, so nothing accumulates (Rule 6.7).
-   */
   function mount(id, build) {
     var host = el(id), state = { mode: null, chart: null };
     function run() {
-      var L = layout(host), mode = (L.narrow ? 'n' : 'w') + (L.roomy ? 'r' : 't');
+      var L = layout(host), mode = L.narrow ? 'n' : 'w';
       if (state.chart && state.mode === mode) return;
       if (state.chart) state.chart.dispose();
       state.mode = mode;
@@ -181,75 +186,79 @@
     var tb = titleBlock(L, d.finding, d.subtitle), top = tb.top;
     var side = !L.narrow;
     var panelLabelH = 24, P = side ? 280 : 200, axisH = 52;
-    var maxCount = Math.max.apply(null, d.annual.concat(d.monthly));
-    // One shared scale for both panels (6.2). The tallest bar is the monthly
-    // spike; the annotation sits above the tallest ANNUAL bar, which is far
-    // below it, so the headroom needed is small. Derived from the data (K1).
-    var yMax = Math.ceil(maxCount * 1.15 / 10) * 10;
+
+    // Each panel keeps only its populated bins (through the last non-zero
+    // count) and takes its own scale — Aaron's read, D15. The annual panel
+    // carries the annotation, so it gets more headroom.
+    function trim(counts) { var n = counts.length; while (n > 1 && counts[n - 1] === 0) n--; return n; }
+    var panels = [
+      { key: 'monthly', name: 'Monthly term', data: d.monthly, idx: 0, nBins: trim(d.monthly), headroom: 1.15 },
+      { key: 'annual',  name: 'Annual term',  data: d.annual,  idx: 1, nBins: trim(d.annual),  headroom: 1.55 }
+    ];
+    panels.forEach(function (p) {
+      p.bins = d.bins.slice(0, p.nBins);
+      p.axis = niceAxis(Math.max.apply(null, p.data.slice(0, p.nBins)), p.headroom, 4);
+    });
+    // Side by side, the panels take width in proportion to their bin counts,
+    // with a floor so a two-bin panel still has room for its title and label.
+    var total = panels[0].nBins + panels[1].nBins;
+    // ...and never narrower than its own panel label plus the y-axis column.
+    var label0W = textWidth(panels[0].name + ' — ' + nf(d.n[panels[0].key]) + ' orders', '600 12px ' + SANS);
+    var share0 = side ? Math.max(0.26, (label0W + 56) / L.w, Math.min(0.5, panels[0].nBins / total)) : 1;
     var gridTop = top + panelLabelH;
     host.style.height = (side ? gridTop + P + axisH + 8
                               : gridTop + 2 * (P + axisH) + panelLabelH + 8) + 'px';
-    var leftW = side ? Math.round(L.w * 0.5) : L.w;
+    var leftW = Math.round(L.w * share0);
     var grids = side
       ? [{ left: 8, width: leftW - 30, top: gridTop, height: P, containLabel: true },
          { left: leftW + 10, right: 12, top: gridTop, height: P, containLabel: true }]
       : [{ left: 8, right: 12, top: gridTop, height: P, containLabel: true },
          { left: 8, right: 12, top: gridTop + P + axisH + panelLabelH, height: P, containLabel: true }];
-    // Panel labels sit ABOVE each grid, right-aligned to its right edge, so
-    // they never meet the y-axis ticks or a median label that starts at the
-    // left edge (the monthly median is in the first bin).
-    var gridW = [side ? grids[0].width : L.w - 8 - 12, side ? L.w - grids[1].left - 12 : L.w - 8 - 12];
+    var gridW = [side ? grids[0].width : L.w - 20, side ? L.w - grids[1].left - 12 : L.w - 20];
     var labelY = [gridTop - panelLabelH + 4, side ? gridTop - panelLabelH + 4 : gridTop + P + axisH + 4];
     var labelRight = [side ? L.w - grids[0].left - grids[0].width : 12, 12];
 
-    var binLabel = function (b) { return String(b); };
-    function axes(idx) {
+    var binLabel = function (b) { return b + '–' + (b + 29); };
+    function axes(p) {
       return {
-        x: { type: 'category', gridIndex: idx, data: d.bins.map(binLabel),
+        x: { type: 'category', gridIndex: p.idx, data: p.bins.map(binLabel),
              name: 'days pending, 30-day bins', nameLocation: 'middle', nameGap: 30,
-             axisLabel: { hideOverlap: true },           // K4: thinned by the renderer
+             axisLabel: { hideOverlap: true },
              axisTick: { show: false } },
-        y: { type: 'value', gridIndex: idx, min: 0, max: yMax, splitNumber: 4 }
+        y: { type: 'value', gridIndex: p.idx, min: 0, max: p.axis.max, interval: p.axis.interval }
       };
     }
-    var a0 = axes(0), a1 = axes(1);
-    var panels = [
-      { key: 'monthly', name: 'Monthly term', data: d.monthly, idx: 0 },
-      { key: 'annual',  name: 'Annual term',  data: d.annual,  idx: 1 }
-    ];
     function medianLine(p) {
       var med = d.median[p.key], x = med / 30 - 0.5;
-      // The line runs from the axis to the height of the panel's tallest bar,
-      // no further: a full-height line would cross the annotation that sits
-      // above the annual modal bar. Its label sits horizontally (Rule 2.8)
-      // just above the line's end; the monthly median is in the first bin, so
-      // that label is pushed right of the line rather than centred over the
-      // y-axis ticks.
-      var top = Math.max.apply(null, p.data);
+      var topVal = Math.max.apply(null, p.data.slice(0, p.nBins));
+      var seg = function (style) {
+        return [{ xAxis: x, yAxis: 0, lineStyle: style }, { xAxis: x, yAxis: topVal, lineStyle: style }];
+      };
       return {
         symbol: 'none', silent: true,
-        lineStyle: { type: 'dashed', color: TT_INK[p.key], width: 1 },
-        label: { show: true, position: 'end', rotate: 0, distance: 6,
-                 formatter: 'median ' + nf(med) + ' days',
-                 fontFamily: SANS, fontSize: 12, color: TT_INK[p.key],
-                 align: x < 1 ? 'left' : 'center', offset: x < 1 ? [-6, 0] : [0, 0] },
-        data: [[{ xAxis: x, yAxis: 0 }, { xAxis: x, yAxis: top }]]
+        label: { show: false },
+        data: [
+          // a paper halo beneath the dash, so it reads against a bar of its own hue (panel #25)
+          seg({ type: 'solid', color: C.paper, width: 4, opacity: 0.9 }),
+          (function () {
+            var s = seg({ type: 'dashed', color: TT_INK[p.key], width: 1.5 });
+            s[1].label = { show: true, position: 'end', rotate: 0, distance: 6,
+                           formatter: 'median ' + nf(med) + ' days',
+                           fontFamily: SANS, fontSize: 12, color: TT_INK[p.key],
+                           align: x < 1 ? 'left' : 'center', offset: x < 1 ? [-6, 0] : [0, 0] };
+            return s;
+          })()
+        ]
       };
     }
     var modalIdx = d.bins.indexOf(d.modalBin.annual);
     var series = panels.map(function (p) {
       var s = {
-        name: p.name, type: 'bar', xAxisIndex: p.idx, yAxisIndex: p.idx, data: p.data,
-        itemStyle: { color: TT[p.key] }, barCategoryGap: '12%',
+        name: p.name, type: 'bar', xAxisIndex: p.idx, yAxisIndex: p.idx, data: p.data.slice(0, p.nBins),
+        itemStyle: { color: TT[p.key] }, barCategoryGap: p.nBins <= 3 ? '45%' : '12%',
         markLine: medianLine(p)
       };
       if (p.key === 'annual' && !L.narrow) {
-        // Above the modal bar (the tallest annual bar, so nothing beside it is
-        // higher -- K3), right-aligned to that bar's centre so the box extends
-        // LEFT over the headroom and never past the panel's right edge.
-        // distance 34: the median label sits in the ~20 px above the tallest
-        // bar's height, so the box starts above that band (K3, and no text on
-        // text). The axis bound above reserves the room.
         s.markPoint = annotation(d.annotation, {
           color: TT.annual, coord: [modalIdx, d.annual[modalIdx]], position: 'top', distance: 34,
           align: 'right', width: Math.min(230, Math.round(gridW[1] * 0.6)), container: L.w
@@ -257,6 +266,7 @@
       }
       return s;
     });
+    var a0 = axes(panels[0]), a1 = axes(panels[1]);
     var ch = echarts.init(host, 'cascadia');
     ch.setOption({
       title: tb.title,
@@ -282,7 +292,7 @@
              series: panels.map(function (p) {
                return { name: p.name + ' (' + nf(d.n[p.key]) + ' orders)',
                         summary: 'median ' + nf(d.median[p.key]) + ' days, maximum ' + nf(d.max[p.key]),
-                        points: d.bins.map(function (b, i) {
+                        points: p.bins.map(function (b, i) {
                           return { label: b + ' to ' + (b + 29) + ' days', value: nf(p.data[i]) + ' orders',
                                    seriesIndex: p.idx, dataIndex: i };
                         }) };
@@ -290,51 +300,52 @@
     }, L);
   });
 
-  /* ================= Chart 2 · backlog by term type and cause ================= */
+  /* ================= Chart 2 · the gap by term type and cause, in licences ================= */
   mount('c2', function (host, L) {
     var d = D.c2, rows = d.rows;
     var tb = titleBlock(L, d.finding, d.subtitle), top = tb.top;
-    var inPlot = L.roomy;                 // the annotation's placement switches at BP.roomy
     var labelW = L.narrow ? 104 : Math.max(120, Math.min(230, Math.round(L.w * 0.32)));
-    // Rule 5.5: at the narrow width a direct label may be ABBREVIATED by a
-    // declared mapping, never deleted. The mapping, declared:
+    // Rule 5.5 declared abbreviations at the narrow width:
     //   "cancellations riding out the term" -> "cancellations", "deferred reductions" -> "reductions",
-    //   "$35,560" -> "$35.6K", "(127 subscription-months)" -> "(127)".
+    //   "3,556 licences" -> "3,556" (the unit stays in the axis name).
     var catLabel = function (r) {
       return L.narrow ? r.label.replace(' riding out the term', '').replace('deferred ', '') : r.label;
     };
-    var kUsd = function (cents) {
-      var dlr = cents / 100;
-      return dlr >= 1000 ? '$' + (Math.round(dlr / 100) / 10) + 'K' : '$' + nf(Math.round(dlr));
-    };
-    var valueLabel = function (r) {
-      return L.narrow ? kUsd(r.cents) + ' (' + nf(r.months) + ')'
-                      : r.dollars + ' (' + nf(r.months) + ' subscription-months)';
-    };
-    var maxDollars = rows[0].cents / 100;
+    var valueLabel = function (r) { return L.narrow ? nf(r.licences) : nf(r.licences) + ' licences'; };
+    var maxLic = Math.max.apply(null, rows.map(function (r) { return r.licences; }));
     var labelPx = Math.max.apply(null, rows.map(function (r) { return textWidth(valueLabel(r), '12px ' + SANS); }));
-    var annW = inPlot ? 200 : 0;
     var gridRight = 16;
     var plotW = Math.max(120, L.w - labelW - 8 - gridRight - 20);
-    // Rule 2.1 / K1: the bound is derived so that the longest value label and,
-    // at the design width, the annotation both fit inside the frame.
-    var fit = 1 - (labelPx + annW + 28) / plotW;
-    if (inPlot && fit < 0.25) {
-      // The declared breakpoint should make this unreachable; if a font or a
-      // longer figure ever changes that, say so rather than clip in silence.
-      console.warn('[c2] annotation room is short at host width ' + L.w + '; raise BP.roomy');
-    }
-    var xMax = maxDollars / Math.max(0.25, fit);
-    xMax = Math.ceil(xMax / 5000) * 5000;
+    // K1: the bound is derived so the longest value label fits inside the frame,
+    // then rounded to a whole number of nice ticks. No room is reserved for an
+    // annotation: it is the note under the plot at every width (panel #7).
+    var fit = Math.max(0.5, 1 - (labelPx + 28) / plotW);
+    var ax = niceAxis(maxLic / fit, 1.0, L.narrow ? 3 : 5);
     var perRow = 52;
     host.style.height = (top + rows.length * perRow + 70) + 'px';
+    // Group subtotals drawn on the canvas (panel #19), as a label on a
+    // zero-opacity markArea spanning each term type's two rows.
+    var groups = {};
+    rows.forEach(function (r, i) {
+      var g = groups[r.termType] || (groups[r.termType] = { first: i, last: i, licences: 0 });
+      g.last = i; g.licences += r.licences;
+    });
+    var markAreaData = Object.keys(groups).map(function (tt) {
+      var g = groups[tt];
+      return [{ yAxis: g.first, itemStyle: { color: 'transparent', opacity: 0 },
+                label: { show: true, position: 'insideRight', fontFamily: SANS, fontSize: 12,
+                         color: TT_INK[tt], formatter: tt.charAt(0).toUpperCase() + tt.slice(1) +
+                           (L.narrow ? ' ' : ' total ') + nf(g.licences) + ' of ' + nf(d.totalLicences) +
+                           (L.narrow ? '' : ' licences') } },
+              { yAxis: g.last }];
+    });
     var ch = echarts.init(host, 'cascadia');
-    var option = {
+    ch.setOption({
       title: tb.title,
       grid: { left: 8, right: gridRight, bottom: 34, top: top, containLabel: true },
-      xAxis: { type: 'value', min: 0, max: xMax, splitNumber: L.narrow ? 3 : 5,
-               name: 'dollars per month', nameLocation: 'middle', nameGap: 28,
-               axisLabel: { formatter: function (v) { return v >= 1000 ? '$' + (v / 1000) + 'K' : '$' + v; } } },
+      xAxis: { type: 'value', min: 0, max: ax.max, interval: ax.interval,
+               name: 'licences the register does not show', nameLocation: 'middle', nameGap: 28,
+               axisLabel: { formatter: function (v) { return nf(v); } } },
       yAxis: { type: 'category', inverse: true, data: rows.map(catLabel),
                axisLabel: { width: labelW, overflow: 'break', lineHeight: 15,
                             verticalAlign: 'middle', interval: 0, margin: 10 } },
@@ -342,35 +353,26 @@
         trigger: 'item',
         formatter: function (q) {
           var r = rows[q.dataIndex];
-          return r.label + '<br>' + r.dollars + ' per month<br>' + nf(r.months) +
-                 ' subscription-months, ' + nf(r.licences) + ' licences';
+          return r.label + '<br>' + nf(r.licences) + ' licences, ' + r.dollars + ' per month<br>' +
+                 nf(r.months) + ' subscription-months';
         }
       }),
       series: [{
         type: 'bar', barCategoryGap: '38%',
         data: rows.map(function (r) {
-          return { value: r.cents / 100, itemStyle: { color: TT[r.termType] },
+          return { value: r.licences, itemStyle: { color: TT[r.termType] },
                    label: { color: TT_INK[r.termType] } };
         }),
         label: { show: true, position: 'right', fontFamily: SANS, fontSize: 12,
-                 formatter: function (q) { return valueLabel(rows[q.dataIndex]); } }
+                 formatter: function (q) { return valueLabel(rows[q.dataIndex]); } },
+        markArea: { silent: true, data: markAreaData }
       }]
-    };
-    if (inPlot) {
-      // Beside the first bar, clear of its value label (K3): the distance is the
-      // measured label width plus a gap, and the axis bound above reserved the room.
-      var lbl0 = textWidth(valueLabel(rows[0]), '12px ' + SANS);
-      option.series[0].markPoint = annotation(d.annotation, {
-        color: TT[rows[0].termType], coord: [rows[0].cents / 100, 0], position: 'right',
-        distance: Math.round(lbl0 + 18), align: 'left', width: annW, container: L.w
-      });
-    }
-    ch.setOption(option);
+    });
     return finish(host, ch, { provenance: d.provenance, summary: d.summary, ariaLabel: d.ariaLabel,
-                              noteVisible: !inPlot }, L);
+                              noteVisible: true }, L);
   });
 
-  /* ================= Chart 3 · register vs effective, month by month ================= */
+  /* ================= Chart 3 · register vs effective, month by month, with the gap share beneath ================= */
   mount('c3', function (host, L) {
     var d = D.c3, pts = d.points, n = pts.length;
     var tb = titleBlock(L, d.finding, d.subtitle), top = tb.top;
@@ -379,28 +381,51 @@
     var eff = pts.map(function (p) { return p.effective; });
     var reg = pts.map(function (p) { return p.register; });
     var gap = pts.map(function (p) { return p.gap; });
-    // Rule 1.3: bank the shape to the data, not to a stylesheet default.
-    var plotH = cascadiaBankedHeight(eff, plotW, { min: 220, max: 400 }) || 300;
-    host.style.height = (top + plotH + 60) + 'px';
+    var shr = pts.map(function (p) { return Math.round(1000 * p.share) / 10; });   // percent, one decimal
+    // Rule 1.3: bank the top panel to the data. The share panel beneath is a
+    // fixed small height: its job is "every month above zero", not slope.
+    var plotH = cascadiaBankedHeight(eff, plotW, { min: 200, max: 360 }) || 280;
+    var panelGap = 34, shareH = L.narrow ? 90 : 110, axisH = 40;
+    var shareTop = top + plotH + panelGap + 18;
+    host.style.height = (shareTop + shareH + axisH + 6) + 'px';
     // Rule 2.1: the title makes a ratio claim ("5.7%"), so the axis includes
-    // zero. K1: the bound is derived, with headroom for the annotation.
+    // zero. K1: bounds derived, as whole ticks (panel #18).
     var maxEff = Math.max.apply(null, eff);
-    var yMax = Math.ceil(maxEff * 1.22 / 10000) * 10000;
+    var axTop = niceAxis(maxEff, 1.2, 5);
+    var axShr = niceAxis(Math.max.apply(null, shr), 1.25, 3);
     var last = pts[n - 1];
+    var peakIdx = pts.map(function (p) { return p.month; }).indexOf(d.peak.month);
     var xLabel = function (p) {
       return L.narrow ? p.label.replace(/ (\d\d)(\d\d)$/, " '$2") : p.label;   // declared abbreviation (5.5)
     };
+    var leaderTop = last.effective * 1.045;   // the leader from the June point up to the annotation (panel #20)
     var ch = echarts.init(host, 'cascadia');
     ch.setOption({
       title: tb.title,
-      grid: { left: 8, right: endLabelW + 8, top: top, height: plotH, containLabel: true },
-      xAxis: { type: 'category', data: pts.map(xLabel), boundaryGap: false,
-               axisLabel: { hideOverlap: true, interval: 'auto' },    // K4: thinned, never rotated
-               axisTick: { show: false } },
-      yAxis: { type: 'value', min: 0, max: yMax, splitNumber: 4,
-               name: 'licences', nameLocation: 'end', nameGap: 8,
-               nameTextStyle: { color: C.slateMoss, fontFamily: SANS, fontSize: 12, align: 'left' },
-               axisLabel: { formatter: function (v) { return v >= 1000 ? (v / 1000) + 'K' : String(v); } } },
+      grid: [
+        { left: 8, right: endLabelW + 8, top: top, height: plotH, containLabel: true },
+        { left: 8, right: endLabelW + 8, top: shareTop, height: shareH, containLabel: true }
+      ],
+      axisPointer: { link: [{ xAxisIndex: 'all' }] },
+      xAxis: [
+        { type: 'category', gridIndex: 0, data: pts.map(xLabel), boundaryGap: false,
+          axisLabel: { show: false }, axisTick: { show: false } },
+        // June 2026 is always a labelled tick (panel #13): showMaxLabel forces the
+        // endpoint; hideOverlap thins the rest (K4).
+        { type: 'category', gridIndex: 1, data: pts.map(xLabel), boundaryGap: false,
+          axisLabel: { hideOverlap: true, interval: 'auto', showMinLabel: true, showMaxLabel: true },
+          axisTick: { show: false } }
+      ],
+      yAxis: [
+        { type: 'value', gridIndex: 0, min: 0, max: axTop.max, interval: axTop.interval,
+          name: 'licences', nameLocation: 'end', nameGap: 8,
+          nameTextStyle: { color: C.slateMoss, fontFamily: SANS, fontSize: 12, align: 'left' },
+          axisLabel: { formatter: function (v) { return v >= 1000 ? (v / 1000) + 'K' : String(v); } } },
+        { type: 'value', gridIndex: 1, min: 0, max: axShr.max, interval: axShr.interval,
+          name: 'gap as a share of effective', nameLocation: 'end', nameGap: 8,
+          nameTextStyle: { color: C.slateMoss, fontFamily: SANS, fontSize: 12, align: 'left' },
+          axisLabel: { formatter: function (v) { return v + '%'; } } }
+      ],
       tooltip: tip(L, {
         trigger: 'axis',
         formatter: function (qs) {
@@ -410,29 +435,40 @@
         }
       }),
       series: [
-        // Register: the base of the stack, Rain with a direct label (2.3.6 exception).
+        // Register: base of the stack. Rain, DASHED (a non-hue channel, panel #21),
+        // with a direct end label in Slate moss (2.3.6 exception).
         { name: 'Register', type: 'line', stack: 'g', data: reg, showSymbol: false, symbol: 'none',
-          lineStyle: { color: C.rain, width: 2 }, itemStyle: { color: C.rain }, z: 3,
+          lineStyle: { color: C.rain, width: 2, type: 'dashed' }, itemStyle: { color: C.rain }, z: 3,
           endLabel: { show: true, formatter: 'Register', color: C.slateMoss, fontFamily: SANS,
                       fontSize: 12, distance: 8, valueAnimation: false } },
-        // Gap: stacked on the register, so its top edge is the effective line;
-        // the band between is the gap, in the unfavourable hue.
+        // Gap: stacked on the register, so its top edge is the effective line,
+        // solid and heavier; the band between is the gap in the unfavourable hue.
         { name: 'Gap', type: 'line', stack: 'g', data: gap, showSymbol: false, symbol: 'none',
-          lineStyle: { color: C.evergreen, width: 2 }, itemStyle: { color: C.evergreen },
+          lineStyle: { color: C.evergreen, width: 2.5 }, itemStyle: { color: C.evergreen },
           areaStyle: { color: C.madrona, opacity: 0.30 }, z: 2,
           endLabel: { show: true, formatter: 'Effective', color: INK.evergreen, fontFamily: SANS,
                       fontSize: 12, distance: 8, valueAnimation: false } },
-        // Effective, unstacked and invisible: the anchor for the annotation and
-        // the navigator, because a markPoint on a stacked series sits at the
-        // series' own value, not its stacked position.
+        // Effective, unstacked and invisible: the anchor for the leader, the
+        // annotation and the navigator (a markPoint on a stacked series sits at
+        // the series' own value, not its stacked position).
         { name: 'Effective', type: 'line', data: eff, showSymbol: false, symbol: 'none',
           lineStyle: { opacity: 0 }, itemStyle: { opacity: 0 }, tooltip: { show: false }, z: 1,
-          // Above the last point, right-aligned to it, so the box extends LEFT
-          // above a line that rises toward it, into headroom the axis bound
-          // reserved (K3).
+          markLine: L.narrow ? undefined : {
+            symbol: 'none', silent: true, label: { show: false },
+            lineStyle: { color: INK.madrona, width: 1, type: 'solid' },
+            data: [[{ coord: [n - 1, last.effective] }, { coord: [n - 1, leaderTop] }]]
+          },
           markPoint: L.narrow ? undefined : annotation(d.annotation, {
-            color: C.madrona, coord: [n - 1, last.effective], position: 'top', distance: 12,
-            align: 'right', width: Math.min(260, Math.round(plotW * 0.5)), container: L.w
+            color: C.madrona, coord: [n - 1, leaderTop], position: 'top', distance: 4,
+            align: 'right', width: Math.min(280, Math.round(plotW * 0.5)), container: L.w
+          }) },
+        // The gap share, one bar per month: every month above zero is the
+        // panel's own test of "every one of 24 months" (panel #6).
+        { name: 'Gap share', type: 'bar', xAxisIndex: 1, yAxisIndex: 1, data: shr,
+          itemStyle: { color: C.madrona }, barCategoryGap: '25%',
+          markPoint: L.narrow ? undefined : annotation(d.peakAnnotation, {
+            color: C.madrona, coord: [peakIdx, shr[peakIdx]], position: 'top', distance: 6,
+            align: peakIdx > n / 2 ? 'right' : 'left', width: 200, fontSize: 12, container: L.w
           }) }
       ]
     });
@@ -445,7 +481,7 @@
                { name: 'Register licences', summary: 'rises from ' + nf(pts[0].register) + ' to ' + nf(last.register),
                  points: pts.map(function (p, i) { return { label: p.label, value: nf(p.register), seriesIndex: 0, dataIndex: i }; }) },
                { name: 'Gap, effective minus register', summary: 'ends at ' + nf(last.gap) + ' licences, ' + pct(last.share) + ' of effective',
-                 points: pts.map(function (p, i) { return { label: p.label, value: nf(p.gap) + ' (' + pct(p.share) + ')', seriesIndex: 1, dataIndex: i }; }) }
+                 points: pts.map(function (p, i) { return { label: p.label, value: nf(p.gap) + ' (' + pct(p.share) + ')', seriesIndex: 3, dataIndex: i }; }) }
              ] }
     }, L);
   });
@@ -455,23 +491,22 @@
     var d = D.c4, rows = d.rows;
     var tb = titleBlock(L, d.finding, d.subtitle), top = tb.top;
     var labelW = L.narrow ? 84 : Math.max(90, Math.min(150, Math.round(L.w * 0.22)));
-    // Rule 5.5 declared abbreviation at the narrow width: the count clause is
-    // dropped from the value label and stays in the table; the share never is.
     var valueLabel = function (r) {
       return L.narrow ? pct(r.share) : pct(r.share) + ' (' + nf(r.derived) + ' of ' + nf(r.rows) + ' rows)';
     };
     var labelPx = Math.ceil(Math.max.apply(null, rows.map(function (r) { return textWidth(valueLabel(r), '12px ' + SANS); })));
     var band = L.narrow ? 70 : 84;
     host.style.height = (top + rows.length * band + 56) + 'px';
+    var mi = rows.findIndex(function (r) { return r.termType === 'monthly'; });
+    var mv = Math.round(1000 * rows[mi].share) / 10;
     var ch = echarts.init(host, 'cascadia');
     var option = {
       title: tb.title,
       // 100 is a true ceiling on a share, not a fit to this build's numbers (K1).
-      // The right padding is the measured label width, so a label at 100% would still fit.
       grid: { left: 8, right: labelPx + 16, bottom: 34, top: top, containLabel: true },
-      xAxis: { type: 'value', min: 0, max: 100, splitNumber: L.narrow ? 2 : 5,
-               name: 'share of billing rows', nameLocation: 'middle', nameGap: 28,
-               axisLabel: { showMaxLabel: true, formatter: function (v) { return v + '%'; } } },
+      xAxis: { type: 'value', min: 0, max: 100, interval: L.narrow ? 50 : 20,
+               name: 'share of subscription-month rows', nameLocation: 'middle', nameGap: 28,
+               axisLabel: { formatter: function (v) { return v + '%'; } } },
       yAxis: { type: 'category', inverse: true, data: rows.map(function (r) { return r.label; }),
                axisLabel: { width: labelW, overflow: 'break', lineHeight: 15,
                             verticalAlign: 'middle', interval: 0, margin: 10 } },
@@ -480,7 +515,7 @@
         formatter: function (q) {
           var r = rows[q.dataIndex];
           return r.label + ': ' + pct(r.share) + '<br>' + nf(r.derived) + ' of ' + nf(r.rows) +
-                 ' subscription-month rows sit in a manufactured term';
+                 ' subscription-month rows sit in a term that auto-renewed with no order behind it';
         }
       }),
       series: [{
@@ -494,14 +529,23 @@
       }]
     };
     if (!L.narrow) {
-      // Under the monthly bar, right-aligned to its end, in the band between the
-      // two bars. The data point sits at the bar's vertical CENTRE, so the
-      // distance must clear half the bar's height or the label prints on the
-      // bar (K3) -- the bar is 54% of the band under barCategoryGap 46%.
-      var mi = rows.findIndex(function (r) { return r.termType === 'monthly'; });
+      // A short leader from the monthly bar's end down into the band between
+      // the bars, and the annotation at its foot, right-aligned to the bar's
+      // end (panel #22): the sentence is tied to that bar, not to the space
+      // beside the annual one. The leader uses the xAxis/yAxis form, which
+      // accepts a fractional category position; a markPoint `coord` on a
+      // category axis rounds to the nearest band, so the annotation is
+      // anchored at the bar's centre and pushed clear of it by distance
+      // (half the bar height plus the leader's length).
+      var barHalf = Math.round(band * 0.54 / 2), leader = 14;
+      option.series[0].markLine = {
+        symbol: 'none', silent: true, label: { show: false },
+        lineStyle: { color: TT_INK.monthly, width: 1, type: 'solid' },
+        data: [[{ xAxis: mv, yAxis: mi }, { xAxis: mv, yAxis: mi + 0.44 }]]
+      };
       option.series[0].markPoint = annotation(d.annotation, {
-        color: TT.monthly, coord: [Math.round(1000 * rows[mi].share) / 10, mi], position: 'bottom',
-        distance: Math.round(band * 0.54 / 2) + 10, align: 'right', width: 260, container: L.w
+        color: TT.monthly, coord: [mv, mi], position: 'bottom', distance: barHalf + leader,
+        align: 'right', width: 300, container: L.w
       });
     }
     ch.setOption(option);

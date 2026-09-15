@@ -116,14 +116,18 @@ def exhibit1(m1: dict, m2: dict, as_of: str, source: str) -> dict:
     med_a, med_m = m05["annual"]["median_days"], m05["monthly"]["median_days"]
     finding = (f"A reduction or cancellation takes effect after a median {nf(med_m)} days on a "
                f"monthly term and a median {nf(med_a)} days on an annual one")
-    subtitle = (f"Days from an order's receipt to the term boundary where it was scheduled to land, "
-                f"for all {nf(n_ann + n_mon)} deferred orders ({nf(n_ann)} annual, {nf(n_mon)} monthly), "
-                f"in 30-day bins. Both panels share the same axes.")
+    landed_a, landed_m = m05["annual"]["landed_by_as_of"], m05["monthly"]["landed_by_as_of"]
+    subtitle = (f"Days from an order's receipt to the term boundary where it was scheduled to land, for all "
+                f"{nf(n_ann + n_mon)} deferred orders received in the window, landed or still pending "
+                f"({nf(n_ann)} annual, {nf(n_mon)} monthly; {nf(landed_a)} and {nf(landed_m)} had reached "
+                f"their boundary by {as_of}), in 30-day bins. Each panel is drawn on its own scale and "
+                f"trimmed to its populated bins. In dollars: Chart 2. The split by order label is in the "
+                f"table beneath.")
     annotation = (f"Most common wait {modal_ann}–{modal_ann + 29} days; "
                   f"the right tail is partly the window's edge")
-    summary = (f"Two histograms of days pending, one per term type, same axes: 30-day bins from "
-               f"0–29 up to {bins[-1]}–{bins[-1] + 29} days on the horizontal axis, count of "
-               f"deferred orders on the vertical. "
+    summary = (f"Two histograms of days pending, one per term type, each on its own vertical scale and "
+               f"trimmed to its populated 30-day bins (from 0–29 up to {bins[-1]}–{bins[-1] + 29} "
+               f"days for the annual panel), count of deferred orders on the vertical. "
                f"Monthly term: {nf(n_mon)} orders, median {nf(med_m)} days, 90th percentile "
                f"{nf(m05['monthly']['p90_days'])}, maximum {nf(m05['monthly']['max_days'])}; the mass sits "
                f"in the {modal_mon}–{modal_mon + 29} day bin ({nf(max(mon))} orders). Annual term: "
@@ -180,31 +184,44 @@ def exhibit2(m1: dict, m2: dict, as_of: str, source: str) -> dict:
     total_c = m03a["total_cents"]
     a_cancel = cells["annual"]["cancel_riding_out"]
     a_reduce = cells["annual"]["deferred_reduction"]
-    cancel_share = a_cancel["cents"] / annual_c if annual_c else 0.0
     mk = m03a["as_of_month"]
-    finding = (f"{dollars(annual_c)} of the {dollars(total_c)} {month_long(mk)} backlog sits on annual "
-               f"terms, and {dollars(a_cancel['cents'])} of that is cancellations still billing")
-    subtitle = (f"Month-end gap between effective and register licences at {as_of}, in dollars at the "
-                f"term type's monthly rate, by term type and by cause. The count beside each bar is "
-                f"subscription-months.")
-    annotation = f"{pct(cancel_share, 0)} of annual backlog dollars are cancellations still billing"
-    summary = (f"Horizontal bar chart, four bars, dollars per month on the horizontal axis from $0. "
-               + "; ".join(f"{r['label']}: {r['dollars']} across {nf(r['months'])} subscription-months "
-                           f"({nf(r['licences'])} licences)" for r in rows)
-               + f". Total {dollars(total_c)}. Annual terms carry {pct(annual_c / total_c)} of the dollars; "
-               f"within annual, cancellations are the larger dollars ({dollars(a_cancel['cents'])} vs "
-               f"{dollars(a_reduce['cents'])}) and deferred reductions the larger count "
-               f"({nf(a_reduce['subscription_months'])} vs {nf(a_cancel['subscription_months'])} subscription-months).")
-    aria = (f"Horizontal bar chart of the {month_long(mk)} backlog in dollars by term type and cause, "
-            f"four bars, largest {rows[0]['dollars']}.")
+    # One unit per bar: LICENCES (panel #5, #14). Dollars and subscription-months
+    # stay in the subtitle, the tooltip and the table. The four licence figures
+    # must sum to M-03's licences at as-of -- checked here, as Seat 2 checked it.
+    annual_lic = sum(c["licences"] for c in cells["annual"].values())
+    total_lic = sum(c["licences"] for tt in cells for c in cells[tt].values())
+    if total_lic != m03["licences_at_as_of"]:
+        raise SystemExit(f"M-03a licences ({total_lic}) do not sum to M-03 licences_at_as_of "
+                         f"({m03['licences_at_as_of']})")
+    cancel_share = a_cancel["licences"] / annual_lic if annual_lic else 0.0
+    finding = (f"{nf(annual_lic)} of the {nf(total_lic)} licences the register does not show at "
+               f"{month_long(mk)} are on annual terms, and {nf(a_cancel['licences'])} of them are "
+               f"cancellations still billing")
+    subtitle = (f"Month-end gap between effective and register licences at {as_of}, by term type and by "
+                f"cause. In dollars at the term rates: {dollars(annual_c)} of {dollars(total_c)} a month "
+                f"on annual terms. Invoices are computed from the effective quantity; the register is what "
+                f"the customer sees. Billed from the register instead, {month_long(mk)} would under-bill by "
+                f"{dollars(total_c)}.")
+    annotation = f"{pct(cancel_share, 0)} of annual gap licences are cancellations still billing"
+    summary = (f"Horizontal bar chart, four bars, licences on the horizontal axis from 0. "
+               + "; ".join(f"{r['label']}: {nf(r['licences'])} licences ({r['dollars']} a month, "
+                           f"{nf(r['months'])} subscription-months)" for r in rows)
+               + f". Total {nf(total_lic)} licences, {dollars(total_c)} a month. Annual terms carry "
+               f"{pct(annual_lic / total_lic)} of the licences; within annual, cancellations are the larger "
+               f"count of licences ({nf(a_cancel['licences'])} vs {nf(a_reduce['licences'])}) and deferred "
+               f"reductions the larger count of subscription-months ({nf(a_reduce['subscription_months'])} vs "
+               f"{nf(a_cancel['subscription_months'])}).")
+    aria = (f"Horizontal bar chart of the {month_long(mk)} gap in licences by term type and cause, "
+            f"four bars, largest {nf(rows[0]['licences'])}.")
     return {
         "rows": rows, "totalCents": total_c, "annualCents": annual_c,
-        "annualShare": annual_c / total_c if total_c else 0.0, "cancelShareOfAnnual": cancel_share,
+        "totalLicences": total_lic, "annualLicences": annual_lic,
+        "annualShare": annual_lic / total_lic if total_lic else 0.0, "cancelShareOfAnnual": cancel_share,
         "asOfMonth": mk, "finding": finding, "subtitle": subtitle, "annotation": annotation,
         "summary": summary, "ariaLabel": aria,
         "provenance": {"source": source, "asOf": as_of,
-                       "flags": f"month-end run rate, {month_long(mk)} only"},
-        "table": [[r["label"], r["dollars"], nf(r["months"]), nf(r["licences"])] for r in rows],
+                       "flags": f"month-end snapshot, {month_long(mk)} only"},
+        "table": [[r["label"], nf(r["licences"]), r["dollars"], nf(r["months"])] for r in rows],
     }
 
 
@@ -229,26 +246,33 @@ def exhibit3(m1: dict, m2: dict, as_of: str, source: str) -> dict:
     clause = f"In every one of {nf(n)} months" if every else f"In {nf(months_with_gap)} of {nf(n)} months"
     finding = (f"{clause} the register showed fewer licences than were billable; "
                f"{nf(last['gap_licences'])} fewer ({pct(last_share)}) at {month_long(last['month_key'])}")
+    gap_cents_at_as_of = m1["measures"]["M-03_entitlement_gap"]["cents_at_as_of"]
     subtitle = (f"Sum of effective and of register licences at each month end, {month_name(pts[0]['month'])} "
-                f"to {month_name(pts[-1]['month'])}, with the gap between them shaded. Gap share is gap "
-                f"divided by effective.")
-    annotation = f"{month_long(last['month_key'])}: {nf(last['gap_licences'])} licences the register does not show"
+                f"to {month_name(pts[-1]['month'])}, with the gap between them shaded; beneath, the gap as a "
+                f"share of effective, month by month. Invoices are computed from the effective quantity; the "
+                f"register is what the customer sees.")
+    annotation = (f"{month_long(last['month_key'])}: {nf(last['gap_licences'])} licences the register does "
+                  f"not show, {dollars(gap_cents_at_as_of)} a month")
     peak = max(pts, key=lambda p: p["gap"])
     peak_share = max(pts, key=lambda p: p["share"])
-    summary = (f"Line chart, two lines over {n} month ends from {month_name(pts[0]['month'])} to "
-               f"{month_name(pts[-1]['month'])}, licences on the vertical axis from 0. Effective licences rise "
-               f"from {nf(pts[0]['effective'])} to {nf(pts[-1]['effective'])}; register licences rise from "
-               f"{nf(pts[0]['register'])} to {nf(pts[-1]['register'])}. The effective line sits above the "
-               f"register line at every month end. The gap grows from {nf(pts[0]['gap'])} licences to a peak "
-               f"of {nf(peak['gap'])} in {month_name(peak['month'])} and is {nf(last['gap_licences'])} at "
-               f"{month_name(last['month_key'])}; as a share of effective it peaks at {pct(peak_share['share'])} "
-               f"in {month_name(peak_share['month'])} and ends at {pct(last_share)}.")
-    aria = (f"Line chart of effective versus register licences at {n} month ends, gap shaded; gap "
-            f"{nf(last['gap_licences'])} licences at {month_name(last['month_key'])}.")
+    peak_annotation = (f"Peak {month_name(peak['month'])}: {nf(peak['gap'])} licences, {pct(peak['share'])}"
+                       if peak["month"] == peak_share["month"] else
+                       f"Peak {month_name(peak['month'])}: {nf(peak['gap'])} licences")
+    summary = (f"Two panels sharing a month axis from {month_name(pts[0]['month'])} to "
+               f"{month_name(pts[-1]['month'])}, {n} month ends. Top: two lines, licences on the vertical axis "
+               f"from 0. Effective licences rise from {nf(pts[0]['effective'])} to {nf(pts[-1]['effective'])}; "
+               f"register licences rise from {nf(pts[0]['register'])} to {nf(pts[-1]['register'])}. The "
+               f"effective line sits above the register line at every month end. Bottom: one bar per month, "
+               f"the gap as a share of effective, every bar above zero; the share rises from "
+               f"{pct(pts[0]['share'])} to a peak of {pct(peak_share['share'])} in {month_name(peak_share['month'])} "
+               f"and ends at {pct(last_share)}. The gap in licences peaks at {nf(peak['gap'])} in "
+               f"{month_name(peak['month'])} and is {nf(last['gap_licences'])} at {month_name(last['month_key'])}.")
+    aria = (f"Line chart of effective versus register licences at {n} month ends, gap shaded, with the gap "
+            f"share per month beneath; gap {nf(last['gap_licences'])} licences at {month_name(last['month_key'])}.")
     return {
         "points": pts, "n": n, "monthsWithGap": months_with_gap, "every": every,
         "finding": finding, "subtitle": subtitle, "annotation": annotation,
-        "summary": summary, "ariaLabel": aria,
+        "peakAnnotation": peak_annotation, "summary": summary, "ariaLabel": aria,
         "provenance": {"source": source, "asOf": as_of,
                        "flags": "rows in manufactured renewals are derived under a stated rule and flagged"},
         "table": [[p["label"], nf(p["effective"]), nf(p["register"]), nf(p["gap"]), pct(p["share"])]
@@ -267,20 +291,27 @@ def exhibit4(m1: dict, m2: dict, as_of: str, source: str) -> dict:
                     "derived": v["rows_derived"], "share": v["share"]} for tt, v in m06a.items()),
                   key=lambda r: -r["share"])
     m, a = m06a["monthly"], m06a["annual"]
+    # Plain words, and "by design" (panel #3). One grain -- subscription-month
+    # rows -- throughout; the term-instance count computes to a different
+    # percentage and confused two seats (panel #8), so it is not on this chart.
     finding = (f"{pct(m['share'], 0)} of monthly-term billing rows and {pct(a['share'], 0)} of annual-term "
-               f"rows fall in a renewal no transaction marked")
-    subtitle = (f"Share of subscription-month rows whose every effective day lies in a manufactured term, by "
-                f"term type; {pct(m06['rows_derived_share'])} of all {nf(m06['rows_total'])} rows blended.")
-    annotation = "Every monthly term after the first is manufactured"
-    summary = (f"Horizontal bar chart, two bars, percent on the horizontal axis from 0 to 100. "
+               f"rows sit in a term that auto-renewed with no order behind it")
+    subtitle = (f"By design: a term renews unless a cancellation is pending, and no transaction marks a "
+                f"renewal. Rows in such terms are derived under that rule and flagged. Blended: "
+                f"{pct(m06['rows_derived_share'])} of all {nf(m06['rows_total'])} subscription-month rows, "
+                f"carrying {pct(m06['cents_derived_share'])} of billed dollars.")
+    annotation = "By design: every monthly term after the first auto-renews without an order"
+    summary = (f"Horizontal bar chart, two bars, percent of subscription-month rows on the horizontal axis "
+               f"from 0 to 100. "
                + "; ".join(f"{r['label']}: {pct(r['share'])} ({nf(r['derived'])} of {nf(r['rows'])} rows)"
                            for r in rows)
-               + f". Blended: {pct(m06['rows_derived_share'])} of {nf(m06['rows_total'])} rows; "
-               f"{nf(m06['terms_derived'])} of {nf(m06['terms_total'])} term instances are manufactured.")
+               + f". Blended: {pct(m06['rows_derived_share'])} of {nf(m06['rows_total'])} rows, "
+               f"{pct(m06['cents_derived_share'])} of billed dollars.")
     aria = (f"Horizontal bar chart of derived row share by term type: monthly {pct(m['share'])}, "
             f"annual {pct(a['share'])}.")
     return {
         "rows": rows, "blended": m06["rows_derived_share"], "rowsTotal": m06["rows_total"],
+        "centsDerivedShare": m06["cents_derived_share"],
         "termsDerived": m06["terms_derived"], "termsTotal": m06["terms_total"],
         "finding": finding, "subtitle": subtitle, "annotation": annotation,
         "summary": summary, "ariaLabel": aria,
@@ -371,7 +402,10 @@ def main() -> int:
         "c3_last_month": month_long(c3["points"][-1]["month"]),
         "c4_m": pct(c4["rows"][0]["share"] if c4["rows"][0]["termType"] == "monthly" else c4["rows"][1]["share"]),
         "c4_a": pct(c4["rows"][0]["share"] if c4["rows"][0]["termType"] == "annual" else c4["rows"][1]["share"]),
-        "c4_blended": pct(c4["blended"]), "terms_derived": nf(c4["termsDerived"]), "terms_total": nf(c4["termsTotal"]),
+        "c4_blended": pct(c4["blended"]), "c4_cents_share": pct(c4["centsDerivedShare"]),
+        "c2_annual_lic": nf(c2["annualLicences"]), "c2_total_lic": nf(c2["totalLicences"]),
+        "a_cancel_lic": nf(next(r["licences"] for r in c2["rows"] if r["termType"] == "annual" and r["cause"] == "cancel_riding_out")),
+        "a_reduce_lic": nf(next(r["licences"] for r in c2["rows"] if r["termType"] == "annual" and r["cause"] == "deferred_reduction")),
         "c1_finding": html.escape(c1["finding"]), "c2_finding": html.escape(c2["finding"]),
         "c3_finding": html.escape(c3["finding"]), "c4_finding": html.escape(c4["finding"]),
         "c1_note": html.escape(c1["annotation"]), "c2_note": html.escape(c2["annotation"]),
@@ -383,8 +417,8 @@ def main() -> int:
     t1b = table("tbl-c1-detail", "Chart 1 detail — by term type and the order's label (M-05a)",
                 ["Term type", "Order label", "Orders", "Median days", "90th pct days", "Min", "Max"],
                 c1["detail"])
-    t2 = table("tbl-c2", f"Chart 2 data — {month_long(c2['asOfMonth'])} backlog by term type and cause (M-03a)",
-               ["Term type and cause", "Dollars per month", "Subscription-months", "Licences"], c2["table"])
+    t2 = table("tbl-c2", f"Chart 2 data — {month_long(c2['asOfMonth'])} gap by term type and cause (M-03a)",
+               ["Term type and cause", "Licences", "Dollars per month", "Subscription-months"], c2["table"])
     t3 = table("tbl-c3", "Chart 3 data — effective and register licences at each month end (M-01, M-02)",
                ["Month", "Effective licences", "Register licences", "Gap (licences)", "Gap share of effective"],
                c3["table"])
@@ -442,8 +476,19 @@ TEMPLATE = r"""<!DOCTYPE html>
                  overflow-wrap:anywhere; }
   .answer .note { font:13px/1.5 var(--sans); color:var(--ink-2); margin:0; }
   .chart { width:100%; }
-  .chart-summary { font:13px/1.6 var(--sans); color:var(--ink); margin:0 2px 8px; max-width:72ch; }
-  .chart-note { font:13px/1.55 var(--serif); color:var(--ink-s1); margin:6px 2px 0; max-width:72ch; }
+  /* Visual order inside a card (panel #15, #12): the canvas first, then the
+     annotation note, the keyboard navigator, the provenance strip, the
+     summary, the tables. The summary stays FIRST in the DOM (Rule 5.1) and
+     renders here in secondary ink below the finding-titled canvas. */
+  .chart-card { display:flex; flex-direction:column; }
+  .chart-card > .chart { order:1; }
+  .chart-card > .chart-note { order:2; }
+  .chart-card > .cascadia-nav { order:3; }
+  .chart-card > .cascadia-provenance { order:4; }
+  .chart-card > .chart-summary { order:5; }
+  .chart-card > details.data-table { order:6; }
+  .chart-summary { font:13px/1.6 var(--sans); color:var(--ink-2); margin:10px 2px 0; max-width:72ch; }
+  .chart-note { font:13px/1.55 var(--serif); color:var(--ink-s1); margin:6px 2px 2px; max-width:72ch; }
   .chart-note.glacier { color:var(--ink-s2); }
   .chart-note.madrona { color:var(--ink-s3); }
   details.data-table { margin:8px 2px 0; }
@@ -498,9 +543,12 @@ TEMPLATE = r"""<!DOCTYPE html>
 <h2>The decision this page serves</h2>
 <p class="lede">Whether to keep invoicing from the register's current quantity, or to derive the billable
 quantity from the event stream and the rules and reconcile the invoice to it.</p>
-<p class="chart-summary">The reader is the finance or revenue-operations owner who signs the monthly
-invoice run and is accountable for the number on it. The benchmark is the register's own quantity, the
-naive answer. Every chart below shows where that answer and the derived one part ways, and by how much.</p>
+<p class="chart-summary" style="color:var(--ink)">The reader is the finance or revenue-operations owner
+who signs the monthly invoice run and is accountable for the number on it. The benchmark is the register's
+own quantity, the naive answer. <strong>Invoices are computed from the effective quantity; the register is
+what the customer and the partner see.</strong> The gap between them is money correctly billed that the
+register does not show. Billed from the register instead, @@c3_last_month@@ would under-bill by
+@@gap_usd@@. Every chart below shows where the two quantities part ways, and by how much.</p>
 
 <div class="answers">
   <div class="answer">
@@ -545,28 +593,34 @@ first term at the as-of date, so an order placed late in a term, with a short wa
 The distribution is shown as measured, not trimmed to move the median.
 </div>
 
-<h2>Where the backlog sits at the as-of date</h2>
+<h2>Where the gap sits at the as-of date</h2>
 <div class="chart-card">
   <p id="sum-c2" class="chart-summary"></p>
   <div id="c2" class="chart" style="height:320px"></div>
-  <p id="note-c2" class="chart-note" hidden>@@c2_note@@</p>
+  <p id="note-c2" class="chart-note">@@c2_note@@</p>
   <details class="data-table"><summary>Chart 2 data table</summary><div class="table-scroll">@@t2@@</div></details>
 </div>
 
 <div class="governance-note">
-<strong>Cancellations are the larger dollars; deferred reductions are the larger count.</strong> On
-annual terms, @@a_cancel_usd@@ of backlog sits on @@a_cancel_n@@ subscription-months whose customer has
-cancelled and is still billable to term end, against @@a_reduce_usd@@ on @@a_reduce_n@@ subscription-months
-waiting for a reduction to land. A register that goes to zero on the cancel date while billing continues for
-up to a year is the module's single largest source of gap, and it is a consequence of the rules rather than
-of any error. A subscription with both a pending reduction and a pending cancellation is counted with the
+<strong>Cancellations are the larger share of the gap; deferred reductions are the larger count of
+subscription-months.</strong> On annual terms, @@a_cancel_lic@@ licences (@@a_cancel_usd@@ a month) sit on
+@@a_cancel_n@@ subscription-months whose customer has cancelled and is still billable to term end, against
+@@a_reduce_lic@@ licences (@@a_reduce_usd@@ a month) on @@a_reduce_n@@ subscription-months waiting for a
+reduction to land. A register that goes to zero on the cancel date while billing continues for up to a year
+is the module's single largest source of gap, and it is a consequence of the rules rather than of any
+error. A subscription with both a pending reduction and a pending cancellation is counted with the
 cancellations, because the cancellation is what decides that no next term opens.
+<br><br>
+<strong>Nothing on this page is shown per partner or per customer, by decision.</strong> The book is
+synthetic, and a per-partner cut would invite reading it as a real one; the module refuses that reading.
+The question a revenue-operations reader will ask next, which partner, is answerable from the conformed
+tables in the repository and is deliberately not answered here.
 </div>
 
 <h2>The register against the effective quantity, month by month</h2>
 <div class="chart-card">
   <p id="sum-c3" class="chart-summary"></p>
-  <div id="c3" class="chart" style="height:420px"></div>
+  <div id="c3" class="chart" style="height:560px"></div>
   <p id="note-c3" class="chart-note madrona" hidden>@@c3_note@@</p>
   <details class="data-table"><summary>Chart 3 data table</summary><div class="table-scroll">@@t3@@</div></details>
 </div>
@@ -575,9 +629,9 @@ cancellations, because the cancellation is what decides that no next term opens.
 <strong>A query that reads the register's current quantity is wrong about the invoice in every month a
 deferral is outstanding.</strong> The book grows through the whole window because subscriptions open
 throughout it, so the gap in licences grows with the book; the share of effective licences the register
-does not show is the figure to read, and it ends at @@gap_share_eff@@. The gap peaked at @@c3_peak_gap@@
-licences in @@c3_peak_month@@. Rows in later months increasingly sit in manufactured renewals, which the
-next chart counts.
+does not show, drawn beneath the lines, is the figure to read, and it ends at @@gap_share_eff@@. The gap
+peaked at @@c3_peak_gap@@ licences in @@c3_peak_month@@. Rows in later months increasingly sit in
+auto-renewed terms no order opened, which the next chart counts.
 </div>
 
 <h2>The renewals nobody sent</h2>
@@ -589,13 +643,13 @@ next chart counts.
 </div>
 
 <div class="governance-note">
-<strong>No transaction marks a renewal; a renewal is implied by the absence of a cancellation.</strong>
-The state machine manufactures the next term under a stated rule and flags every row that rests on one:
-@@terms_derived@@ of @@terms_total@@ term instances, and @@c4_blended@@ of all billing rows. That is
-derivation under a written rule, declared on the row, and it is not the filling of a gap. The blended
-figure hides two books: monthly terms are @@c4_m@@ derived because every month after the first is a
-manufactured term, and annual terms are @@c4_a@@ derived because at most one renewal fits inside the
-window.
+<strong>No transaction marks a renewal; a renewal is implied by the absence of a cancellation. That is
+the rule, not a data gap.</strong> The state machine opens the next term under that stated rule and flags
+every billing row that rests on one: @@c4_blended@@ of all subscription-month rows, carrying
+@@c4_cents_share@@ of billed dollars. That is derivation under a written rule, declared on the row, and it
+is not the filling of a gap. The blended figure hides two books: monthly terms are @@c4_m@@ derived because
+every month after the first is an auto-renewed term, and annual terms are @@c4_a@@ derived because at most
+one renewal fits inside the window.
 </div>
 
 <h2>What was checked and found to be nothing</h2>
