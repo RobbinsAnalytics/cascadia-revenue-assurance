@@ -1,0 +1,351 @@
+{
+  "module": "cascadia-revenue-assurance",
+  "disclosure": "Synthetic data from a seeded generator (seed 20260911). Simulated: not a real company, customer, partner, product or book of business.",
+  "built_by": "src/build_entitlement.py (Path 1), Stage 2",
+  "seed": 20260911,
+  "as_of_date": "2026-06-30",
+  "stage": 2,
+  "measures": {
+    "as_of_date": "2026-06-30",
+    "M-03a_gap_at_as_of_by_term_type_and_cause": {
+      "as_of_month": "2026-06",
+      "by_term_type": {
+        "annual": {
+          "cancel_riding_out": {
+            "cents": 3556000,
+            "subscription_months": 127,
+            "licences": 3556
+          },
+          "deferred_reduction": {
+            "cents": 2062000,
+            "subscription_months": 221,
+            "licences": 2062
+          }
+        },
+        "monthly": {
+          "cancel_riding_out": {
+            "cents": 145200,
+            "subscription_months": 15,
+            "licences": 121
+          },
+          "deferred_reduction": {
+            "cents": 163200,
+            "subscription_months": 12,
+            "licences": 136
+          }
+        }
+      },
+      "total_cents": 5926400
+    },
+    "M-05a_deferral_by_term_type_and_transaction_type": {
+      "annual": {
+        "ADD": {
+          "n": 40,
+          "median_days": 152,
+          "p90_days": 275,
+          "min_days": 18,
+          "max_days": 352
+        },
+        "CANCEL": {
+          "n": 279,
+          "median_days": 226,
+          "p90_days": 353,
+          "min_days": 1,
+          "max_days": 364
+        },
+        "REDUCE": {
+          "n": 526,
+          "median_days": 235,
+          "p90_days": 353,
+          "min_days": 2,
+          "max_days": 365
+        }
+      },
+      "monthly": {
+        "ADD": {
+          "n": 0,
+          "median_days": null,
+          "p90_days": null,
+          "min_days": null,
+          "max_days": null
+        },
+        "CANCEL": {
+          "n": 212,
+          "median_days": 17,
+          "p90_days": 29,
+          "min_days": 1,
+          "max_days": 31
+        },
+        "REDUCE": {
+          "n": 403,
+          "median_days": 16,
+          "p90_days": 28,
+          "min_days": 1,
+          "max_days": 31
+        }
+      }
+    },
+    "M-05a_histogram_30_day_bins": {
+      "annual": {
+        "0": 32,
+        "30": 53,
+        "60": 44,
+        "90": 50,
+        "120": 67,
+        "150": 58,
+        "180": 65,
+        "210": 80,
+        "240": 67,
+        "270": 64,
+        "300": 100,
+        "330": 116,
+        "360": 49
+      },
+      "monthly": {
+        "0": 580,
+        "30": 35,
+        "60": 0,
+        "90": 0,
+        "120": 0,
+        "150": 0,
+        "180": 0,
+        "210": 0,
+        "240": 0,
+        "270": 0,
+        "300": 0,
+        "330": 0,
+        "360": 0
+      }
+    },
+    "M-06a_derived_share_by_term_type": {
+      "annual": {
+        "rows": 30086,
+        "rows_derived": 5607,
+        "share": 0.1863657515123313
+      },
+      "monthly": {
+        "rows": 20024,
+        "rows_derived": 16641,
+        "share": 0.8310527367159408
+      }
+    },
+    "M-01_M-02_monthly_series": [
+      {
+        "month_key": "2024-07",
+        "effective_licences": 3752,
+        "register_licences": 3723,
+        "gap_licences": 29,
+        "gap_cents": 30800,
+        "billable_cents": 2111190,
+        "rows": 152
+      },
+      {
+        "month_key": "2024-08",
+        "effective_licences": 6694,
+        "register_licences": 6611,
+        "gap_licences": 83,
+        "gap_cents": 84400,
+        "billable_cents": 5265440,
+        "rows": 294
+      },
+      {
+        "month_key": "2024-09",
+        "effective_licences": 13139,
+        "register_licences": 12944,
+        "gap_licences": 195,
+        "gap_cents": 212000,
+        "billable_cents": 10661573,
+        "rows": 484
+      },
+      {
+        "month_key": "2024-10",
+        "effective_licences": 15774,
+        "register_licences": 15551,
+        "gap_licences": 223,
+        "gap_cents": 228600,
+        "billable_cents": 15598692,
+        "rows": 650
+      },
+      {
+        "month_key": "2024-11",
+        "effective_licences": 20695,
+        "register_licences": 19685,
+        "gap_licences": 1010,
+        "gap_cents": 1150200,
+        "billable_cents": 19952909,
+        "rows": 836
+      },
+      {
+        "month_key": "2024-12",
+        "effective_licences": 23396,
+        "register_licences": 22846,
+        "gap_licences": 550,
+        "gap_cents": 559800,
+        "billable_cents": 23871162,
+        "rows": 1010
+      },
+      {
+        "month_key": "2025-01",
+        "effective_licences": 26302,
+        "register_licences": 25509,
+        "gap_licences": 793,
+        "gap_cents": 803600,
+        "billable_cents": 27070683,
+        "rows": 1160
+      },
+      {
+        "month_key": "2025-02",
+        "effective_licences": 29443,
+        "register_licences": 28265,
+        "gap_licences": 1178,
+        "gap_cents": 1232200,
+        "billable_cents": 29857962,
+        "rows": 1321
+      },
+      {
+        "month_key": "2025-03",
+        "effective_licences": 33163,
+        "register_licences": 31941,
+        "gap_licences": 1222,
+        "gap_cents": 1236000,
+        "billable_cents": 34073260,
+        "rows": 1494
+      },
+      {
+        "month_key": "2025-04",
+        "effective_licences": 38864,
+        "register_licences": 37090,
+        "gap_licences": 1774,
+        "gap_cents": 1789600,
+        "billable_cents": 39109776,
+        "rows": 1684
+      },
+      {
+        "month_key": "2025-05",
+        "effective_licences": 43925,
+        "register_licences": 41831,
+        "gap_licences": 2094,
+        "gap_cents": 2118000,
+        "billable_cents": 44530576,
+        "rows": 1831
+      },
+      {
+        "month_key": "2025-06",
+        "effective_licences": 49368,
+        "register_licences": 47141,
+        "gap_licences": 2227,
+        "gap_cents": 2236200,
+        "billable_cents": 49853579,
+        "rows": 2015
+      },
+      {
+        "month_key": "2025-07",
+        "effective_licences": 52594,
+        "register_licences": 49768,
+        "gap_licences": 2826,
+        "gap_cents": 2880400,
+        "billable_cents": 54838412,
+        "rows": 2189
+      },
+      {
+        "month_key": "2025-08",
+        "effective_licences": 57263,
+        "register_licences": 53216,
+        "gap_licences": 4047,
+        "gap_cents": 4071600,
+        "billable_cents": 59248658,
+        "rows": 2358
+      },
+      {
+        "month_key": "2025-09",
+        "effective_licences": 61691,
+        "register_licences": 57307,
+        "gap_licences": 4384,
+        "gap_cents": 4399600,
+        "billable_cents": 63575125,
+        "rows": 2505
+      },
+      {
+        "month_key": "2025-10",
+        "effective_licences": 66072,
+        "register_licences": 61432,
+        "gap_licences": 4640,
+        "gap_cents": 4666800,
+        "billable_cents": 68720252,
+        "rows": 2666
+      },
+      {
+        "month_key": "2025-11",
+        "effective_licences": 71210,
+        "register_licences": 65902,
+        "gap_licences": 5308,
+        "gap_cents": 5329800,
+        "billable_cents": 73597958,
+        "rows": 2823
+      },
+      {
+        "month_key": "2025-12",
+        "effective_licences": 73988,
+        "register_licences": 68147,
+        "gap_licences": 5841,
+        "gap_cents": 5859400,
+        "billable_cents": 77874647,
+        "rows": 2964
+      },
+      {
+        "month_key": "2026-01",
+        "effective_licences": 78244,
+        "register_licences": 71280,
+        "gap_licences": 6964,
+        "gap_cents": 7084800,
+        "billable_cents": 81558597,
+        "rows": 3145
+      },
+      {
+        "month_key": "2026-02",
+        "effective_licences": 81596,
+        "register_licences": 75033,
+        "gap_licences": 6563,
+        "gap_cents": 6589000,
+        "billable_cents": 85264543,
+        "rows": 3324
+      },
+      {
+        "month_key": "2026-03",
+        "effective_licences": 87970,
+        "register_licences": 81433,
+        "gap_licences": 6537,
+        "gap_cents": 6572600,
+        "billable_cents": 90970492,
+        "rows": 3524
+      },
+      {
+        "month_key": "2026-04",
+        "effective_licences": 91852,
+        "register_licences": 86021,
+        "gap_licences": 5831,
+        "gap_cents": 5864600,
+        "billable_cents": 95763866,
+        "rows": 3705
+      },
+      {
+        "month_key": "2026-05",
+        "effective_licences": 96969,
+        "register_licences": 90831,
+        "gap_licences": 6138,
+        "gap_cents": 6190200,
+        "billable_cents": 101639371,
+        "rows": 3892
+      },
+      {
+        "month_key": "2026-06",
+        "effective_licences": 102554,
+        "register_licences": 96679,
+        "gap_licences": 5875,
+        "gap_cents": 5926400,
+        "billable_cents": 107159221,
+        "rows": 4084
+      }
+    ]
+  }
+}

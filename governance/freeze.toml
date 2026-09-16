@@ -35,3 +35,13 @@ protected_paths = [
   "data/conformed/*",
   "governance/generator_assumptions.md",
 ]
+
+# Stage 2 (2026-09-14). The page's certified cuts live in a NEW file under the
+# protected tree, per PRINCIPLES rule 2 (additive, never a rewrite of
+# measures_manifest.json). It did not exist at the pinned baseline, so the
+# template gate reports it CHANGED. Exempted here, with the reason printed on
+# every run, rather than moving the baseline or removing the pattern. It is
+# derived from frozen inputs and re-derived leaf for leaf by Path 2.
+[[permitted_edit]]
+path = "data/conformed/measures_stage2.json"
+reason = "Stage 2 additive measures file (2026-09-14): derived from frozen inputs; not present at the pinned baseline b47506b; re-derived by Path 2 (validate_measures.py), 245 cells, 0 mismatches."

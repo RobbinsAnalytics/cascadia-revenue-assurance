@@ -503,6 +503,83 @@ def compute_measures(out: dict, as_of: date) -> dict:
     }
 
 
+def compute_stage2(out: dict, as_of: date) -> dict:
+    """The Stage 2 cuts -- M-03a, M-05a, M-06a and the M-01/M-02 monthly series.
+
+    Written to data/conformed/measures_stage2.json as a NEW file (PRINCIPLES
+    rule 2: extend additively; measures_manifest.json is untouched). Every
+    leaf is re-derived by Path 2. Definitions are in governance/metric_register.md.
+    """
+    months, terms, dfr = out["billable_months"], out["terms"], out["deferrals"]
+    mk = f"{as_of.year:04d}-{as_of.month:02d}"
+    tts, causes = ("annual", "monthly"), ("cancel_riding_out", "deferred_reduction")
+
+    # M-03a -- cause = cancel_pending on the term instance containing the as-of date
+    cur_cancel: dict[str, bool] = {}
+    for t in terms:
+        if t["term_start"] <= as_of <= t["term_end"]:
+            cur_cancel[t["subscription_key"]] = bool(t["cancel_pending"])
+    cells = {tt: {c: {"cents": 0, "subscription_months": 0, "licences": 0} for c in causes} for tt in tts}
+    for r in months:
+        if r["month_key"] != mk or r["gap_amount_cents"] <= 0:
+            continue
+        cause = "cancel_riding_out" if cur_cancel.get(r["subscription_key"]) else "deferred_reduction"
+        c = cells[r["term_type"]][cause]
+        c["cents"] += r["gap_amount_cents"]
+        c["subscription_months"] += 1
+        c["licences"] += r["gap_quantity"]
+    total = sum(cells[tt][c]["cents"] for tt in tts for c in causes)
+
+    # M-05a -- by term type x transaction type, plus 30-day histogram
+    groups: dict[tuple, list[int]] = {}
+    for d in dfr:
+        groups.setdefault((d["term_type"], d["transaction_type"]), []).append(d["days_pending"])
+    m05a = {}
+    for tt in tts:
+        m05a[tt] = {}
+        for ttype in ("ADD", "CANCEL", "REDUCE"):
+            v = groups.get((tt, ttype), [])
+            m05a[tt][ttype] = {"n": len(v), "median_days": nearest_rank(v, 0.5),
+                               "p90_days": nearest_rank(v, 0.9),
+                               "min_days": min(v) if v else None, "max_days": max(v) if v else None}
+    hist = {tt: {str(b): 0 for b in range(0, 361, 30)} for tt in tts}
+    for d in dfr:
+        hist[d["term_type"]][str(min(360, d["days_pending"] // 30 * 30))] += 1
+
+    # M-06a -- derived share by term type
+    m06a = {}
+    for tt in tts:
+        rows = [r for r in months if r["term_type"] == tt]
+        n_der = sum(1 for r in rows if r["derived"])
+        m06a[tt] = {"rows": len(rows), "rows_derived": n_der,
+                    "share": (n_der / len(rows)) if rows else None}
+
+    # M-01 / M-02 at 24 month ends
+    acc: dict[str, dict] = {}
+    for r in months:
+        a = acc.setdefault(r["month_key"], {"month_key": r["month_key"], "effective_licences": 0,
+                                            "register_licences": 0, "gap_licences": 0,
+                                            "gap_cents": 0, "billable_cents": 0, "rows": 0})
+        a["effective_licences"] += r["effective_quantity_at_month_end"]
+        a["register_licences"] += r["register_quantity_at_month_end"]
+        a["gap_licences"] += r["gap_quantity"]
+        a["gap_cents"] += r["gap_amount_cents"]
+        a["billable_cents"] += r["billable_amount_cents"]
+        a["rows"] += 1
+    series = [acc[k] for k in sorted(acc)]
+
+    return {
+        "as_of_date": as_of.isoformat(),
+        "M-03a_gap_at_as_of_by_term_type_and_cause": {
+            "as_of_month": mk, "by_term_type": cells, "total_cents": total,
+        },
+        "M-05a_deferral_by_term_type_and_transaction_type": m05a,
+        "M-05a_histogram_30_day_bins": hist,
+        "M-06a_derived_share_by_term_type": m06a,
+        "M-01_M-02_monthly_series": series,
+    }
+
+
 # ---------------------------------------------------------------------------
 # io
 # ---------------------------------------------------------------------------
@@ -651,6 +728,20 @@ def main() -> int:
                     "measures": measures}
     (CONF / "measures_manifest.json").write_text(json.dumps(measures_doc, indent=2) + "\n",
                                                  encoding="utf-8", newline="\n")
+
+    # Stage 2 (2026-09-14): the page's cuts, in a NEW file. measures_manifest.json
+    # is the Stage 1 artifact and is not rewritten (PRINCIPLES rule 2).
+    stage2 = compute_stage2(out, as_of)
+    m03a = stage2["M-03a_gap_at_as_of_by_term_type_and_cause"]
+    if m03a["total_cents"] != measures["M-03_entitlement_gap"]["cents_at_as_of"]:
+        raise SystemExit("M-03a cells (%d) do not sum to M-03 cents_at_as_of (%d)"
+                         % (m03a["total_cents"], measures["M-03_entitlement_gap"]["cents_at_as_of"]))
+    stage2_doc = {"module": "cascadia-revenue-assurance", "disclosure": disclosure,
+                  "built_by": "src/build_entitlement.py (Path 1), Stage 2",
+                  "seed": raw_manifest["seed"], "as_of_date": as_of.isoformat(),
+                  "stage": 2, "measures": stage2}
+    (CONF / "measures_stage2.json").write_text(json.dumps(stage2_doc, indent=2) + "\n",
+                                               encoding="utf-8", newline="\n")
 
     conf_manifest = {
         "module": "cascadia-revenue-assurance", "as_of_date": as_of.isoformat(),

@@ -109,6 +109,43 @@ then the four gates: `validate.py`, `validate_measures.py`, `validate_freeze.py`
 `test_golden.py`. All four must exit zero before anything under
 `data/conformed/` is committed.
 
+## Stage 2 — the page (2026-09-14)
+
+`docs/index.html` is built by `src/build_page.py` from
+`data/conformed/measures_manifest.json` and `measures_stage2.json` only; every
+figure and every sentence a chart shows is composed there and passed to
+`docs/assets/page.js`, which decides geometry. `src/render_charts.py` derives
+the K6 ladder from `window.CASCADIA_BREAKPOINTS` and opens the page as a
+`file://` URL — no server, no network. Rebuild order after any change:
+`build_page.py`, then `render_charts.py`; the renders under `docs/renders/`
+are committed and `chart-review.md` cites them.
+
+Five facts from that build that are not inferable from the code:
+
+- **ECharts' `overflow: 'break'` breaks after any ASCII punctuation and any
+  non-ASCII character**, so it split a title inside "$35,560" at the comma.
+  Every canvas sentence is pre-wrapped at spaces in `page.js` (`prewrap`)
+  before ECharts sees it. Do not pass a raw sentence to `cascadiaTitle` or
+  `cascadiaAnnotation`.
+- **A markPoint label with `align: 'right'` right-aligns to the anchor on its
+  own.** Adding an `offset` to "help" pushed two annotations off the canvas.
+- **The design system ships no stylesheet.** `docs/assets/cascadia.css` is the
+  Fee Examiner copy with its `@font-face` `url()` sources removed, because the
+  woff2 files they name exist in neither repository and every load 404'd.
+- **Chart 2's annotation is never in the plot.** The first build reserved
+  room for it inside the frame and had to push the axis to twice the data to
+  fit it; a second breakpoint at 900 was tried and then removed with the
+  in-plot placement. The sentence is the note under the chart at every width.
+- **Chart 1's panels take independent scales by decision (D15),** overriding
+  the reading panel's Rule 6.2 finding. Do not "fix" it back to a shared scale.
+- **The desktop app's Browser pane loads `docs/index.html` as a `data:`
+  snapshot in which no script runs** (no ECharts, zero canvases). A live read
+  of the page needs a real browser on the `file://` path or a served copy.
+- **A new file under `data/conformed/` fails the pinned freeze gate** even
+  when it is derived from frozen inputs, because it did not exist at the
+  baseline. `measures_stage2.json` is a declared `[[permitted_edit]]` in
+  `governance/freeze.toml`; the reason prints on every run.
+
 ## Three facts that are not in the code and have already mattered
 
 - **Path 2 reads `data/raw/order_events.csv`, not `fact_order_event.csv`.**
