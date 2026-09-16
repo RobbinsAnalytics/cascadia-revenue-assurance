@@ -134,7 +134,7 @@ def exhibit1(m1: dict, m2: dict, as_of: str, source: str) -> dict:
                f"{nf(n_ann)} orders, median {nf(med_a)} days, 90th percentile {nf(m05['annual']['p90_days'])}, "
                f"maximum {nf(m05['annual']['max_days'])}; the counts spread across every bin and are largest "
                f"in the {modal_ann}–{modal_ann + 29} day bin ({nf(max(ann))} orders).")
-    aria = (f"Two histograms of days pending by term type, 30-day bins, shared axes. Monthly median "
+    aria = (f"Two histograms of days pending by term type, 30-day bins, each panel on its own scale. Monthly median "
             f"{nf(med_m)} days, annual median {nf(med_a)} days.")
     rows = [[f"{b}–{b + 29}", nf(mon[i]), nf(ann[i])] for i, b in enumerate(bins)]
     detail = []
@@ -154,7 +154,7 @@ def exhibit1(m1: dict, m2: dict, as_of: str, source: str) -> dict:
         "finding": finding, "subtitle": subtitle, "annotation": annotation,
         "summary": summary, "ariaLabel": aria,
         "provenance": {"source": source, "asOf": as_of,
-                       "flags": "right tail partly window-censored; not trimmed"},
+                       "flags": "right tail partly window-censored; shown as measured"},
         "table": rows, "detail": detail,
         "tookEffect": {tt: m05[tt]["took_effect_as_scheduled"] for tt in ("annual", "monthly")},
         "landed": {tt: m05[tt]["landed_by_as_of"] for tt in ("annual", "monthly")},
