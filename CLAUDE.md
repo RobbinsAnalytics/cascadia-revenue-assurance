@@ -13,12 +13,13 @@ cost a session — are at
 stop at the line. What gets published is governed by `PRINCIPLES.md` in the
 same directory. This file carries only what is true of this repo.
 
-## Stage 1 is the data layer only — no page exists yet
+## Two stages, both built; no live or scheduled network call
 
-This repo currently builds no page, draws no chart, and makes no live or
-scheduled network call. It stops at a set of published numbers, reported to
-Aaron before anything is drawn. **Stage 2 — the page — is a separate brief**,
-issued after Aaron has read Stage 1's numbers. Do not anticipate it here.
+Stage 1 was the data layer only: it stopped at a set of published numbers,
+reported to Aaron before anything was drawn. **Stage 2 — the page — was a
+separate brief**, issued after he had read those numbers, and is described
+in its own section below (2026-09-14). Nothing here makes a live or
+scheduled network call.
 
 ## Two hard constraints, before anything else
 
@@ -59,11 +60,13 @@ protects `data/raw/*`, `data/conformed/*` and
 `governance/generator_assumptions.md`; `src/validate_freeze.py` is the estate
 template, verbatim, and must exit zero before anything is published.
 
-**The template gate cannot tell an untracked file from an unchanged one.** It
-compares with `git diff --quiet <baseline> -- <path>`, and an untracked path
-produces no diff, so a protected file that exists on disk but was never
-committed passes. Observed on 2026-09-11, before the freeze commit. A passing
-gate is therefore a claim about committed files only; check `git status` too.
+**The template gate resolves against git, not the filesystem (template
+v1.1.0, 2026-10-14).** Until then it compared with
+`git diff --quiet <baseline> -- <path>`, and an untracked path produced no
+diff, so a protected file that existed on disk but was never committed passed
+— observed here on 2026-09-11, before the freeze commit (parking lot 8a). It
+now resolves each pattern against the baseline tree, the index and untracked
+paths, so that file fails the gate.
 
 Regenerating is a deliberate act. Change `SEED` or the parameter block, rerun
 the generator, and re-freeze with a commit that says so — never edit a file
